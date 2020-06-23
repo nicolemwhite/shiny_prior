@@ -201,7 +201,7 @@ shinyServer(function(input, output,session) {
       paste("prior_simulations",".csv", sep = "")
     },
     content = function(file) {
-      dat = simulated_values() 
+      dat = simulated_values()$dat 
       dat = spread(dat,variable,value)
       write.csv(dat, file, row.names = FALSE)
     }
