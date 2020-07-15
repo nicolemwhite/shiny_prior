@@ -23,8 +23,13 @@ estimate_normal = function(evidence_type,sample_values){
     mu_est = (cilow_est*qnorm(1-p1)-cihigh_est*qnorm(p1))/(qnorm(1-p1)-qnorm(p1))
     sigma_est = (cihigh_est-cilow_est)/(qnorm(1-p1)-qnorm(p1))
   }
-  
-  return(c(Mean=mu_est,`Standard deviation`=sigma_est))
+  #add percentiles
+  return(c(Mean=mu_est,`Standard deviation`=sigma_est,
+           p2.5 = qnorm(0.025,mu_est,sigma_est),
+           p25 = qnorm(0.25,mu_est,sigma_est),
+           p50 = qnorm(0.5,mu_est,sigma_est),
+           p75 = qnorm(0.75,mu_est,sigma_est),
+           p97.5 = qnorm(0.975,mu_est,sigma_est)))
 }
 
 check_normal_params <- function(evidence_type,sample_vals,prior_number){
@@ -54,7 +59,14 @@ estimate_gamma = function(evidence_type,sample_values){
     scale_est = 1/values[2]
   }
   
-  return(c(Shape=shape_est,Scale=scale_est))
+  return(c(Shape=shape_est,Scale=scale_est,
+           Mean=shape_est*scale_est,
+           `Standard deviation`=sqrt(shape_est)*scale_est,
+           p2.5= qgamma(0.025,shape=shape_est,scale=scale_est),
+           p25 = qgamma(0.25,shape=shape_est,scale=scale_est),
+           p50 = qgamma(0.5,shape=shape_est,scale=scale_est),
+           p75 = qgamma(0.75,shape=shape_est,scale=scale_est),
+           p97.5 = qgamma(0.975,shape=shape_est,scale=scale_est)))
 }
 
 check_gamma_params <- function(evidence_type,sample_vals,prior_number){
@@ -89,8 +101,15 @@ estimate_beta = function(evidence_type,sample_values){
     a_est = values[1]
     b_est = values[2]
   }
-  out = c(a_est,b_est)
-  return(c(`Shape (alpha)`=a_est,`Shape (beta)` = b_est))
+  mean_est = a_est/(a_est+b_est)
+  sd_est = sqrt((a_est*b_est)/((a_est+b_est+1)*(a_est+b_est)^2))
+  return(c(`Shape (alpha)`=a_est,`Shape (beta)` = b_est,
+           Mean = mean_est, `Standard deviation` = sd_est,
+           p2.5= qbeta(0.025,shape1=a_est,shape2=b_est),
+           p25 = qbeta(0.25,shape1=a_est,shape2=b_est),
+           p50 = qbeta(0.5,shape1=a_est,shape2=b_est),
+           p75 = qbeta(0.75,shape1=a_est,shape2=b_est),
+           p97.5 = qbeta(0.975,shape1=a_est,shape2=b_est)))
 }  
 
 check_beta_params <- function(evidence_type,sample_vals,prior_number){
@@ -106,7 +125,16 @@ check_beta_params <- function(evidence_type,sample_vals,prior_number){
 estimate_uniform = function(sample_values){
   a_est = sample_values[1]
   b_est = sample_values[2]
-  return(c(Minimum=a_est,Maximum=b_est))
+  mean_est = 0.5*(a_est+b_est)
+  sd_est = sqrt((1/12)*(b_est-a_est)^2)
+  return(c(Minimum=a_est,Maximum=b_est,
+           Mean = mean_est,
+           `Standard deviation`=sd_est,
+           p2.5= qunif(0.025,min=a_est,max=b_est),
+           p25 = qunif(0.25,min=a_est,max=b_est),
+           p50 = qunif(0.5,min=a_est,max=b_est),
+           p75 = qunif(0.75,min=a_est,max=b_est),
+           p97.5 = qunif(0.975,min=a_est,max=b_est)))
 }
 
 check_uniform_params <- function(sample_vals,prior_number){
@@ -120,7 +148,15 @@ estimate_triangular = function(sample_values){
   c_est = sample_values[1]
   a_est = sample_values[2]
   b_est = sample_values[3]
-  return(c(Mode = c_est,Minimum=a_est,Maximum=b_est))
+  mean_est = (a_est+b_est+c_est)/3
+  sd_est = sqrt((a_est^2+b_est^2+c_est^2-a_est*b_est-a_est*c_est-b_est*c_est)/18)
+  return(c(Mode = c_est,Minimum=a_est,Maximum=b_est,
+           Mean = mean_est,`Standard deviation` = sd_est,
+           p2.5= qtriangle(0.025,a=a_est,b=b_est,c=c_est),
+           p25 = qtriangle(0.25,a=a_est,b=b_est,c=c_est),
+           p50 = qtriangle(0.5,a=a_est,b=b_est,c=c_est),
+           p75 = qtriangle(0.75,a=a_est,b=b_est,c=c_est),
+           p97.5 = qtriangle(0.975,a=a_est,b=b_est,c=c_est)))
 }
 
 check_triangular_params <- function(sample_vals,prior_number){
@@ -134,7 +170,12 @@ check_triangular_params <- function(sample_vals,prior_number){
 #poisson: mean only
 estimate_poisson = function(sample_values){
   mu_est = sample_values[1]
-  return(c(Mean = mu_est))
+  return(c(Mean = mu_est,`Standard deviation` = mu_est,
+           p2.5= qpois(0.025,lambda=mu_est),
+           p25 = qpois(0.25,lambda=mu_est),
+           p50 = qpois(0.5,lambda=mu_est),
+           p75 = qpois(0.75,lambda=mu_est),
+           p97.5 = qpois(0.975,lambda=mu_est)))
 }
 
 check_poisson_params <- function(sample_vals,prior_number){
@@ -145,8 +186,8 @@ check_poisson_params <- function(sample_vals,prior_number){
 #Lognormal
 estimate_lognormal = function(evidence_type,sample_values){
   if(evidence_type=='mean_se'){
-    mu_est = log(sample_values[1])
-    sigma_est = sample_values[2]
+    mu_est = log(sample_values[1]^2/sqrt(sample_values[2]^2+sample_values[1]^2))
+    sigma_est = sqrt(log(1+(sample_values[2]^2)/(sample_values[1]^2)))
   }
   if(evidence_type=='ci'){ 
     cilow_est = log(sample_values[1])
@@ -157,7 +198,13 @@ estimate_lognormal = function(evidence_type,sample_values){
     mu_est = (cilow_est*qnorm(1-p1)-cihigh_est*qnorm(p1))/(qnorm(1-p1)-qnorm(p1))
     sigma_est = (cihigh_est-cilow_est)/(qnorm(1-p1)-qnorm(p1))
   }
-  return(c(Mean=mu_est,`Standard deviation`=sigma_est))
+  return(c(`Mean (log)`=mu_est,`Standard deviation (log)`=sigma_est,
+           Mean = exp(mu_est+0.5*sigma_est^2),`Standard deviation`=sqrt((exp(sigma_est^2)-1)*exp(2*mu_est+sigma_est^2)),
+           p2.5= stats::qlnorm(0.025,meanlog=mu_est,sdlog=sigma_est),
+           p25 = stats::qlnorm(0.25,meanlog=mu_est,sdlog=sigma_est),
+           p50 = stats::qlnorm(0.5,meanlog=mu_est,sdlog=sigma_est),
+           p75 = stats::qlnorm(0.75,meanlog=mu_est,sdlog=sigma_est),
+           p97.5 = stats::qlnorm(0.975,meanlog=mu_est,sdlog=sigma_est)))
 }
 
 check_lognormal_params <- function(evidence_type,sample_vals,prior_number){
@@ -203,13 +250,13 @@ sim_values = function(dist_name,n_samples,param_estimates){
   d = gsub('_.*','',dist_name)
   
   switch(d,
-         'norm' = rnorm(n_samples,param_estimates[1],param_estimates[2]),
-         'gamma' = rgamma(n_samples,shape = param_estimates[1],scale = param_estimates[2]),
-         'beta' = rbeta(n_samples,param_estimates[1],param_estimates[2]),
-         'unif' = runif(n_samples,param_estimates[1],param_estimates[2]),
-         'tri' = rtriangle(n_samples,param_estimates[2],param_estimates[3],param_estimates[1]),
-         'pois' = rpois(n_samples,param_estimates[1]),
-         'lnorm' = rlnorm(n_samples,param_estimates[1],param_estimates[2])
+         'norm' = rnorm(n_samples,param_estimates['Mean'],param_estimates['Standard deviation']),
+         'gamma' = rgamma(n_samples,shape = param_estimates['Shape'],scale = param_estimates['Scale']),
+         'beta' = rbeta(n_samples,param_estimates['Shape (alpha)'],param_estimates['Shape (beta)']),
+         'unif' = runif(n_samples,param_estimates['Minimum'],param_estimates['Maximum']),
+         'tri' = rtriangle(n_samples,param_estimates['Minimum'],param_estimates['Maximum'],param_estimates['Mode']),
+         'pois' = rpois(n_samples,param_estimates['Mean']),
+         'lnorm' = stats::rlnorm(n_samples,param_estimates['Mean (log)'],param_estimates['Standard deviation (log)'])
   )
 }
 
@@ -327,3 +374,13 @@ nice_names_evidence <- function(evidence_obj){
   )
 }
 
+#histogram customisation
+colourschemes <- list('Colour'=c("#00AEEF",'#AA4371'),
+  'Greyscale' = c('#202020','#808080'))
+
+themes <- list("Light" = theme_light(),
+               "Minimal" = theme_minimal(),
+               "Black/White" = theme_bw(),
+               "Classic" = theme_classic())
+legend_positions <- list("No" = 'none',
+                         "Yes" = 'top')
