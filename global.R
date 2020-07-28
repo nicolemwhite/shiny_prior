@@ -1,9 +1,8 @@
 library(shiny)
-library(dplyr)
-library(tidyr)
+library(shinyjs)
+#library(shinyBS)
+library(tidyverse)
 library(stringr)
-library(tibble)
-library(ggplot2)
 library(triangle)
 library(rriskDistributions)
 
@@ -113,9 +112,9 @@ estimate_beta = function(evidence_type,sample_values){
 }  
 
 check_beta_params <- function(evidence_type,sample_vals,prior_number){
-  if (evidence_type=='mean_se' & (!sample_vals[1] %in% seq(0,1)|!sample_vals[2] %in% seq(0,1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
+  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (!sample_vals[1] %in% seq(0,1)|!sample_vals[2] %in% seq(0,1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Lower and upper interval values must be between 0 and 1")}
+  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Lower and upper interval values must be between 0 and 1")}
   else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Define confidence level as a % value between 0 and 100")}
   else if (evidence_type=='r_n' & sample_vals[1]>sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Number of events must be less than sample size")}
   else{NULL}
@@ -220,6 +219,7 @@ check_missing_inputs <-function(sample_vals){
   else{NULL}
 }
 
+
 check_dist_params <- function(dist_name,evidence_type,sample_vals,prior_number){
   switch(dist_name,
          'norm'= check_normal_params(evidence_type,sample_vals,prior_number),
@@ -231,6 +231,18 @@ check_dist_params <- function(dist_name,evidence_type,sample_vals,prior_number){
          'lnorm' = check_lognormal_params(evidence_type,sample_vals,prior_number)
   )
 }
+
+check_nsims <- function(n_sim){
+  if(is.numeric(n_sim)==F|n_sim<=0){"Number of simulations must be numeric and greater than 0"}
+  else{NULL}
+}
+
+check_prior_labels <-function(prior_labels,n_prior){
+  if(any(prior_labels=="")==T){"At least one label is missing. Please specify prior label(s)"}
+  else if(length(unique(prior_labels))<n_prior){"Labels are identical for both priors 1 and 2. Please specify unique labels"}
+  else{NULL}
+}
+
 
 estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
   switch(dist_name,
@@ -375,8 +387,8 @@ nice_names_evidence <- function(evidence_obj){
 }
 
 #histogram customisation
-colourschemes <- list('Colour'=c("#00AEEF",'#AA4371'),
-  'Greyscale' = c('#202020','#808080'))
+colourschemes <- list('Colour'=hcl.colors(2, "Set 2"),  #c("#00AEEF",'#AA4371')
+  'Greyscale' = grey.colors(2,start=0.2,end=0.6))
 
 themes <- list("Light" = theme_light(),
                "Minimal" = theme_minimal(),

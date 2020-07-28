@@ -56,6 +56,7 @@ shinyServer(function(input, output,session) {
     validate(
       check_dist_params(dist_info()[[x]]$dist_name,evidence_info()[[x]]$evidence_type,estimate_info()[[x]],x)
     )
+
     estimate_dist_parameters(dist_name=dist_info()[[x]]$dist_name,
                              evidence_type= evidence_info()[[x]]$evidence_type,
                              sample_dat=estimate_info()[[x]])})
@@ -66,6 +67,7 @@ shinyServer(function(input, output,session) {
     n_prior = as.numeric(input[['compare']])
     dat_list = lapply(seq(n_prior),function(x){
       data.frame(Prior=x,
+                 Label = input[[paste0('prior_label_',x)]],
                  Distribution = nice_names(input[[paste0('dist_',x)]]),
                  Evidence = simulated_values()$evidence_type[[x]],
                  Mean = parameter_estimates()[[x]]['Mean'],
@@ -84,17 +86,18 @@ shinyServer(function(input, output,session) {
   
   #main simulation functions for output
   get_draws = function(){
+    validate(check_nsims(input$samples))
     out = reactiveValues()
     n_prior = as.numeric(input[['compare']])
     dat = sapply(seq(n_prior),function(x) sim_values(input[[paste0('dist_',x)]],input[['samples']],parameter_estimates()[[x]]))
     dat = as.data.frame(dat)
-    colnames(dat) = paste0('Prior_',seq(n_prior))
+    out$prior_labels = lapply(seq(n_prior),function(x) input[[paste0('prior_label_',x)]])
+    validate(check_prior_labels(out$prior_labels,n_prior))
+    colnames(dat) = out$prior_labels
     dat = dat %>% rowid_to_column(.,var='simulation')
     out$dat = gather(dat,variable,value,-simulation)
-    
     out$dist_names = lapply(seq(n_prior),function(x) nice_names(input[[paste0('dist_',x)]]))
     out$evidence_type = lapply(seq(n_prior),function(x) nice_names_evidence(input[[paste0('parms_in_',x)]]))
-    
     return(out)
   }
   
@@ -102,6 +105,7 @@ shinyServer(function(input, output,session) {
     n_prior = as.numeric(input[['compare']])
     dat_list = lapply(seq(n_prior),function(x){
       data.frame(Prior=x,
+                 Label = input[[paste0('prior_label_',x)]],
                  Distribution = nice_names(input[[paste0('dist_',x)]]),
                  Evidence = simulated_values()$evidence_type[[x]],
                  Parameter = names(parameter_estimates()[[x]][1:2]),
@@ -115,6 +119,7 @@ shinyServer(function(input, output,session) {
 
   print_summary_tab = function(){
     dat = simulated_values()$dat
+    prior_labels = simulated_values()$prior_labels
     dist_names = simulated_values()$dist_names
     dist_names = gsub('distribution','',dist_names)
     evidence_type = simulated_values()$evidence_type
@@ -125,10 +130,10 @@ shinyServer(function(input, output,session) {
                                                        `p50` = quantile(value,0.5,na.rm=T),
                                                        `p75` = quantile(value,0.75,na.rm=T),
                                                        `p97.5` = quantile(value,0.975,na.rm=T)) %>%
-      mutate(variable = gsub('.*_','',variable)) %>% rename('Prior'=variable) %>%
-      add_column(.,'Distribution'=dist_names,Evidence=evidence_type) %>% 
-      select(Prior,Distribution,Evidence,everything())
-    
+      ungroup(variable) %>% 
+      rename('Label'=variable) %>%
+      add_column(.,'Prior'=seq(prior_labels),'Distribution'=dist_names,Evidence=evidence_type) %>%
+      select(Prior,Label,Distribution,Evidence,everything())
     return(data.frame(tab_dat))
     
   }
@@ -155,45 +160,45 @@ shinyServer(function(input, output,session) {
 
 
   build_histograms = reactive({
-    #aushsi.colours<-hist_colours()
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
     legend_posn = legend_positions[[input$legend]]
       
     plot_dat = simulated_values()$dat
     dist_names = simulated_values()$dist_names
+    prior_labels = simulated_values()$prior_labels
     if(sum(dist_names=='Poisson distribution')==0){
       g = ggplot(plot_dat,aes(x=value,colour=variable))+
-        geom_histogram(aes(y=..density..,fill=variable),bins=input$nbins,alpha=input$opacity,position='identity')+
-        scale_fill_manual(values=c(plot_colours[2],plot_colours[1]))+
-        scale_colour_manual(values=c(plot_colours[2],plot_colours[1]))+
+        geom_histogram(aes(y=..density..,fill=variable),bins=as.numeric(input$compare)*input$nbins,alpha=input$opacity,position='identity')+
+        scale_fill_manual(values=plot_colours)+
+        scale_colour_manual(values=plot_colours)+
         xlab(input$xlabtext)+ylab(input$ylabtext)+
         plot_theme+
-        theme(text=element_text(size=14),
-              axis.text.x = element_text(size=14),
-              axis.text.y = element_text(size=14),              
+        theme(text=element_text(size=12),
+              axis.text.x = element_text(size=12),
+              axis.text.y = element_text(size=12),              
               legend.title = element_blank(),
               legend.position = legend_posn,
-              legend.direction = 'horizontal') +
-        scale_x_continuous(n.breaks=10)
+              legend.direction = 'horizontal')+
+        scale_x_continuous(breaks=round(seq(min(plot_dat$value),max(plot_dat$value),length.out=10),2))
       
     }
     #special case: poisson distribution
     if(sum(dist_names=='Poisson distribution')>0){
       g = ggplot(plot_dat,aes(x=value,colour=variable))+
         geom_histogram(aes(y=..density..,fill=variable),bins = input$nbins,alpha=input$opacity,position='identity')+
-        scale_fill_manual(values=c(plot_colours[2],plot_colours[1]))+
-        scale_colour_manual(values=c(plot_colours[2],plot_colours[1]))+
+        scale_fill_manual(values=plot_colours)+
+        scale_colour_manual(values=plot_colours)+
         xlab(input$xlabtext)+ylab(input$ylabtext)+
         plot_theme+
-        theme(text=element_text(size=14),
-              axis.text.x = element_text(size=14),
-              axis.text.y = element_text(size=14),              
+        theme(text=element_text(size=12),
+              axis.text.x = element_text(size=12),
+              axis.text.y = element_text(size=12),              
               legend.title = element_blank(),
               legend.position = input$legend_position,
               legend.direction = 'horizontal') +
-        expand_limits(x=c(floor(min(plot_dat$value)),ceiling(max(plot_dat$value)))) +
-        scale_x_continuous()
+        expand_limits(x=c(floor(min(plot_dat$value)),ceiling(max(plot_dat$value))))+
+        scale_x_continuous(breaks=round(seq(min(plot_dat$value),max(plot_dat$value),length.out=10),2))
     }
     g
   })
@@ -226,15 +231,23 @@ shinyServer(function(input, output,session) {
   observeEvent(input$resetAll, {
     updateRadioButtons(session, "compare", selected=1)
     updateNumericInput(session,'samples',value=10000)
+    shinyjs::reset("prior_setup_1")
+    shinyjs::reset("prior_setup_2")
+    updateCheckboxInput(session,'perc_theory',value=T)
+    updateCheckboxInput(session,'perc_simulated',value=T)
+    updateSelectInput(session,"colourscheme",selected = 'Colour')
+    updateSelectInput(session,"theme",selected = 'Minimal')
     updateTextInput(session,'xlabtext',value='Sampled value')
     updateTextInput(session,'ylabtext',value='Density')
     updateRadioButtons(session,"legend",selected="Yes")
-    updateSelectInput(session,"theme",selected = 'Minimal')
-    updateSelectInput(session,"colourscheme",selected = 'Colour')
-    shinyjs::reset("prior_setup_1")
-    shinyjs::reset("prior_setup_2")
+    updateSliderInput(session,'nbins',value=25)
+    updateSliderInput(session,'opacity',value=0.25)
+    updateSelectInput(session,"fformat",selected='png')
+    updateNumericInput(session,"fres",value=300)
+    updateNumericInput(session,"fheight",value=10)
+    updateNumericInput(session,"fwidth",value=15)
   })
-  
+
   
   #download csv file with simulations
   output$downloadData <- downloadHandler(
@@ -253,15 +266,12 @@ shinyServer(function(input, output,session) {
     fheight <- input$fheight
     fwidth <- input$fwidth
     fres <- as.numeric(input$fres)
-    if(input$fformat=="pdf") fheight <- round(fheight*0.3937,2)
-    if(input$fformat=="pdf") fwidth <- round(fwidth*0.3937,2)
-    
+
     # open file dependent on format    
     if(input$fformat=="png") png(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm")
     if(input$fformat=="tiff") tiff(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm", compression="lzw")
     if(input$fformat=="jpeg") jpeg(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm", quality=100)
-    if(input$fformat=="pdf") pdf(fn_downloadname(), height=fheight, width=fwidth)
-    
+
     g = build_histograms()
     print(g)
     dev.off()
@@ -273,7 +283,6 @@ shinyServer(function(input, output,session) {
     if(input$fformat=="png") filename <- paste0(fname,".png",sep="")
     if(input$fformat=="tiff") filename <- paste0(fname,".tif",sep="")
     if(input$fformat=="jpeg") filename <- paste0(fname,".jpg",sep="")
-    if(input$fformat=="pdf") filename <- paste0(fname,".pdf",sep="")
     return(filename)
   })
   
