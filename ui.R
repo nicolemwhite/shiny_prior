@@ -148,8 +148,8 @@ shinyUI(fluidPage(
                  tabPanel('Overview',
                           p("This application is designed to estimate and visualise prior distributions for use in simulation-based modelling. 
                     Options focus on using common forms of evidence reported in published articles to estimate unknown distribution parameters."),
-                          h5(strong("References and Contacts")),
-                          p("Questions about ShinyPrior including bug reports and suggested improvements can be sent to Nicole White (nm.white@qut.edu.au) or Robin Blythe (robin.blythe@qut.edu.au)")
+                          h5(strong("Contacts")),
+                          p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au) or Robin Blythe (robin.blythe@qut.edu.au)")
                  ),
                  tabPanel("Parameter estimates",
                           tableOutput("param_est")
