@@ -1,11 +1,10 @@
 library(shiny)
 library(shinyjs)
-#library(shinyBS)
 library(tidyverse)
-library(stringr)
-library(triangle)
+library(scales)
 library(rriskDistributions)
-
+library(flextable)
+library(officer)
 #DISTRIBUTIONS
 #simulate values based on distribution and parameter estimates
 estimate_normal = function(evidence_type,sample_values){
@@ -31,10 +30,10 @@ estimate_normal = function(evidence_type,sample_values){
            p97.5 = qnorm(0.975,mu_est,sigma_est)))
 }
 
-check_normal_params <- function(evidence_type,sample_vals,prior_number){
-  if (evidence_type=='mean_se' & sample_vals[2]<=0){paste("Check inputs defined for Prior",prior_number,"(Normal distribution): Uncertainty estimate must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Normal distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check inputs defined for Prior",prior_number,"(Normal distribution): Define confidence level as a % value between 0 and 100")}
+check_normal_params <- function(evidence_type,sample_vals){
+  if (evidence_type=='mean_se' & sample_vals[2]<=0){paste("Check distribution inputs (Normal distribution): Uncertainty estimate must be greater than 0")}
+  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Normal distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Normal distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -68,11 +67,11 @@ estimate_gamma = function(evidence_type,sample_values){
            p97.5 = qgamma(0.975,shape=shape_est,scale=scale_est)))
 }
 
-check_gamma_params <- function(evidence_type,sample_vals,prior_number){
-  if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check inputs defined for Prior",prior_number,"(Gamma distribution): Mean and uncertainty estimates must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Gamma distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check inputs defined for Prior",prior_number,"(Gamma distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check inputs defined for Prior",prior_number,"(Gamma distribution): Define confidence level as a % value between 0 and 100")}
+check_gamma_params <- function(evidence_type,sample_vals){
+  if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Gamma distribution): Mean and uncertainty estimates must be greater than 0")}
+  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Gamma distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Gamma distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -111,12 +110,12 @@ estimate_beta = function(evidence_type,sample_values){
            p97.5 = qbeta(0.975,shape1=a_est,shape2=b_est)))
 }  
 
-check_beta_params <- function(evidence_type,sample_vals,prior_number){
-  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Lower and upper interval values must be between 0 and 1")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Define confidence level as a % value between 0 and 100")}
-  else if (evidence_type=='r_n' & sample_vals[1]>sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Beta distribution): Number of events must be less than sample size")}
+check_beta_params <- function(evidence_type,sample_vals){
+  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Distribution",prior_number,"(Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
+  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Distribution",prior_number,"(Beta distribution): Lower and upper interval values must be between 0 and 1")}
+  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='r_n' & sample_vals[1]>sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
 }
 
@@ -136,51 +135,12 @@ estimate_uniform = function(sample_values){
            p97.5 = qunif(0.975,min=a_est,max=b_est)))
 }
 
-check_uniform_params <- function(sample_vals,prior_number){
-  if (sample_vals[1]>sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Uniform distribution): Minimum value must be lower than Maximum value")}
+check_uniform_params <- function(sample_vals){
+  if (sample_vals[1]>sample_vals[2]){paste("Check distibution inputs (Uniform distribution): Minimum value must be less than the Maximum value")}
   else{NULL}
 }
 
 
-#triangular: mode with min/max only
-estimate_triangular = function(sample_values){
-  c_est = sample_values[1]
-  a_est = sample_values[2]
-  b_est = sample_values[3]
-  mean_est = (a_est+b_est+c_est)/3
-  sd_est = sqrt((a_est^2+b_est^2+c_est^2-a_est*b_est-a_est*c_est-b_est*c_est)/18)
-  return(c(Mode = c_est,Minimum=a_est,Maximum=b_est,
-           Mean = mean_est,`Standard deviation` = sd_est,
-           p2.5= qtriangle(0.025,a=a_est,b=b_est,c=c_est),
-           p25 = qtriangle(0.25,a=a_est,b=b_est,c=c_est),
-           p50 = qtriangle(0.5,a=a_est,b=b_est,c=c_est),
-           p75 = qtriangle(0.75,a=a_est,b=b_est,c=c_est),
-           p97.5 = qtriangle(0.975,a=a_est,b=b_est,c=c_est)))
-}
-
-check_triangular_params <- function(sample_vals,prior_number){
-  if (sample_vals[2]>sample_vals[1]){paste("Check inputs defined for Prior",prior_number,"(Triangular distribution): Minimum value must be less than most likely value")}
-  else if (sample_vals[3]<sample_vals[1]){paste("Check inputs defined for Prior",prior_number,"(Triangular distribution): Maximum value must be greater than most likely value")}
-  else if (sample_vals[3]<sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Triangular distribution): Maximum value must be greater than minimum value")}
-  else{NULL}
-}
-
-
-#poisson: mean only
-estimate_poisson = function(sample_values){
-  mu_est = sample_values[1]
-  return(c(Mean = mu_est,`Standard deviation` = mu_est,
-           p2.5= qpois(0.025,lambda=mu_est),
-           p25 = qpois(0.25,lambda=mu_est),
-           p50 = qpois(0.5,lambda=mu_est),
-           p75 = qpois(0.75,lambda=mu_est),
-           p97.5 = qpois(0.975,lambda=mu_est)))
-}
-
-check_poisson_params <- function(sample_vals,prior_number){
-  if (sample_vals[1]<=0){paste("Check inputs defined for Prior",prior_number,"(Poisson distribution): Mean value must be greater than 0")}
-  else{NULL}
-}
 
 #Lognormal
 estimate_lognormal = function(evidence_type,sample_values){
@@ -206,41 +166,43 @@ estimate_lognormal = function(evidence_type,sample_values){
            p97.5 = stats::qlnorm(0.975,meanlog=mu_est,sdlog=sigma_est)))
 }
 
-check_lognormal_params <- function(evidence_type,sample_vals,prior_number){
-  if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check inputs defined for Prior",prior_number,"(Lognormal distribution): Mean and uncertainty estimates must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check inputs defined for Prior",prior_number,"(Lognormal distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check inputs defined for Prior",prior_number,"(Lognormal distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check inputs defined for Prior",prior_number,"(Lognormal distribution): Define confidence level as a % value between 0 and 100")}
+check_lognormal_params <- function(evidence_type,sample_vals){
+  if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Lognormal distribution): Mean and uncertainty estimates must be greater than 0")}
+  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Lognormal distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Lognormal distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Lognormal distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
 check_missing_inputs <-function(sample_vals){
-  if(anyNA(sample_vals)==T){"At least one input is empty. Please specify value(s) or select 'Single prior distribution' option"}
+  if(anyNA(sample_vals)==T){"At least one input is empty. Please specify all values based on the form of evidence selected in Step 2"}
   else{NULL}
 }
 
-
-check_dist_params <- function(dist_name,evidence_type,sample_vals,prior_number){
+check_dist_params <- function(dist_name,evidence_type,sample_vals){
   switch(dist_name,
-         'norm'= check_normal_params(evidence_type,sample_vals,prior_number),
-         'gamma'= check_gamma_params(evidence_type,sample_vals,prior_number),
-         'beta'= check_beta_params(evidence_type,sample_vals,prior_number),
-         'unif'=check_uniform_params(sample_vals,prior_number),
-         'tri' = check_triangular_params(sample_vals,prior_number),
-         'pois' = check_poisson_params(sample_vals,prior_number),
-         'lnorm' = check_lognormal_params(evidence_type,sample_vals,prior_number)
+         'norm'= check_normal_params(evidence_type,sample_vals),
+         'gamma'= check_gamma_params(evidence_type,sample_vals),
+         'beta'= check_beta_params(evidence_type,sample_vals),
+         'unif'=check_uniform_params(sample_vals),
+         'lnorm' = check_lognormal_params(evidence_type,sample_vals)
   )
 }
 
-check_nsims <- function(n_sim){
-  if(is.numeric(n_sim)==F|n_sim<=0){"Number of simulations must be numeric and greater than 0"}
-  else{NULL}
-}
-
-check_prior_labels <-function(prior_labels,n_prior){
-  if(any(prior_labels=="")==T){"At least one label is missing. Please specify prior label(s)"}
-  else if(length(unique(prior_labels))<n_prior){"Labels are identical for both priors 1 and 2. Please specify unique labels"}
-  else{NULL}
+check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
+  
+  dist_label = dist_obj$dist_label
+  dist_name = dist_obj$dist_name
+  
+  if(dist_label==''){"Empty description. Please provide a name for your distrbution in Step 1. Names already stored in the final output table will be overwritten."}
+  else if(dist_label!='' & anyNA(sample_vals)==T){"At least one input is empty. Please enter all required values based on the form of evidence selected in Step 2"}
+  else if (dist_label!='' & anyNA(sample_vals)==F){
+    switch(dist_name,
+           'norm'= check_normal_params(evidence_type,sample_vals),
+           'gamma'= check_gamma_params(evidence_type,sample_vals),
+           'beta'= check_beta_params(evidence_type,sample_vals),
+           'unif'=check_uniform_params(sample_vals),
+           'lnorm' = check_lognormal_params(evidence_type,sample_vals))}
 }
 
 
@@ -250,88 +212,89 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
          'gamma' = estimate_gamma(evidence_type,sample_dat),
          'beta' = estimate_beta(evidence_type,sample_dat),
          'unif' = estimate_uniform(sample_dat),
-         'tri' = estimate_triangular(sample_dat),
-         'pois' = estimate_poisson(sample_dat),
          'lnorm' = estimate_lognormal(evidence_type,sample_dat)
   )
 }
 
-sim_values = function(dist_name,n_samples,param_estimates){
-  if(is.null(dist_name)||is.null(n_samples))
-    return()
-  d = gsub('_.*','',dist_name)
-  
-  switch(d,
-         'norm' = rnorm(n_samples,param_estimates['Mean'],param_estimates['Standard deviation']),
-         'gamma' = rgamma(n_samples,shape = param_estimates['Shape'],scale = param_estimates['Scale']),
-         'beta' = rbeta(n_samples,param_estimates['Shape (alpha)'],param_estimates['Shape (beta)']),
-         'unif' = runif(n_samples,param_estimates['Minimum'],param_estimates['Maximum']),
-         'tri' = rtriangle(n_samples,param_estimates['Minimum'],param_estimates['Maximum'],param_estimates['Mode']),
-         'pois' = rpois(n_samples,param_estimates['Mean']),
-         'lnorm' = stats::rlnorm(n_samples,param_estimates['Mean (log)'],param_estimates['Standard deviation (log)'])
-  )
-}
+
+
+# sim_values = function(dist_family,n_samples,param_estimates){
+#   if(is.null(dist_family)||is.null(n_samples))
+#     return()
+#   d = dist_family
+#   
+#   switch(dist_name,
+#          'norm' = rnorm(n_samples,param_estimates['Mean'],param_estimates['Standard deviation']),
+#          'gamma' = rgamma(n_samples,shape = param_estimates['Shape'],scale = param_estimates['Scale']),
+#          'beta' = rbeta(n_samples,param_estimates['Shape (alpha)'],param_estimates['Shape (beta)']),
+#          'unif' = runif(n_samples,param_estimates['Minimum'],param_estimates['Maximum']),
+#          'lnorm' = stats::rlnorm(n_samples,param_estimates['Mean (log)'],param_estimates['Standard deviation (log)'])
+#   )
+# }
 
 
 
-#renderDistn: take information from applying define_dist_info and set up ui option conditional on chosen distributino
-renderDistIn <- function(dist_info){
-  suffix = dist_info$suffix #gsub('.*_','',dist_info)
-  dist_name = dist_info$dist_name #gsub('_.*','',dist_info)
-  switch(dist_name,
-         "norm" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                              choices = c('Mean with uncertainty'=paste0('mean_se_',suffix),
-                                          'Confidence interval'=paste0('ci_',suffix)),
-                              selected=paste0('mean_se_',suffix)),
-         "gamma" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                               choices = c('Mean with uncertainty'=paste0('mean_se_',suffix),
-                                           'Confidence interval'=paste0('ci_',suffix)),
-                               selected=paste0('mean_se_',suffix)),
-         "beta" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                              choices = c('Mean with uncertainty'=paste0('mean_se_',suffix),
-                                          'Confidence interval'=paste0('ci_',suffix),
-                                          'Number of events, sample size' = paste0('r_n_',suffix)),
-                              selected=paste0('r_n_',suffix)),
-         "unif" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                              choices = c('Min/Max'=paste0('min_max_',suffix)),
-                              selected=paste0('min_max_',suffix)),
-         "tri" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                             choices = c('Most likely value with Min/Max'=paste0('mode_min_max_',suffix)),
-                             selected=paste0('mode_min_max_',suffix)),
-         'pois' = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                              choices = c('Mean'=paste0('mean_',suffix)),
-                              selected=paste0('mean_',suffix)),
-         "lnorm" = selectInput(inputId = paste0('parms_in_',suffix),label='Form of evidence',
-                               choices = c('Mean with uncertainty'=paste0('mean_se_',suffix),
-                                           'Confidence interval'=paste0('ci_',suffix)),
-                               selected=paste0('mean_se_',suffix))
-  )
+renderInputs <- function(){
+  wellPanel(id='dist_inputs',h5(strong(paste("Step 2: Define distribution inputs"))),
+            helpText(paste0('Select the form of evidence available to estimate the distribution in Step 1. 
+                            Enter values for all inputs based on the form of evidence selected.')),
+            #form of evidence based on distribution selected
+            fluidRow(column(6,uiOutput(paste0("ui_dist")))),
+            fluidRow(column(6,
+                            uiOutput(paste0("ui_evidence")))))
 }
 
 #renderParmsIn: take info from define_evidence_info and setup numeric inputs to enter published evidence
 #later: add default values depedning on distirbuiton
-renderParmsIn <- function(evidence_in,dist_obj){
+renderParmsIn <- function(evidence_in){
   parms = evidence_in$evidence_parms
-  suffix = evidence_in$suffix
   labels = evidence_in$labels
   
   parms_n = length(parms)
   div(
     lapply(seq(parms_n),function(v){
-      numericInput(inputId=paste('sample',parms[v],suffix,sep='_'),
+      numericInput(inputId=paste('sample',parms[v],sep='_'),
                    label=paste(labels[v]),
                    value=NA)}
     )
   )
 }
 
+
+#renderDistn: take information from applying define_dist_info and set up ui option conditional on chosen distributino
+renderDistIn <- function(dist_obj){
+  dist_name <-dist_obj$dist_name
+  switch(dist_name,
+         "norm" = selectInput(inputId = 'parms_in',label='Form of evidence',
+                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                              selected='mean_se'),
+                              
+         "gamma" = selectInput(inputId = 'parms_in',label='Form of evidence',
+                               choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                               selected='mean_se'),
+         
+         "beta" = selectInput(inputId = 'parms_in',label='Form of evidence',
+                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci','Number of events, sample size' = 'r_n'),
+                              selected='r_n'),
+         
+         "unif" = selectInput(inputId = 'parms_in',label='Form of evidence',choices = c('Min/Max'='min_max'),selected='min_max'),
+         
+         "lnorm" = selectInput(inputId = 'parms_in',label='Form of evidence',
+                               choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                               selected='mean_se')
+  )
+}
+
+
+
 #global functions
-define_dist_options <-function(dist_obj){
-  if (is.null(dist_obj))
+
+define_dist_options <-function(dist_obj_name,dist_obj_label){
+  if (is.null(dist_obj_name))
     return()
   distn = reactiveValues()
-  distn$dist_name = gsub('_.*','',dist_obj)
-  distn$suffix = gsub('.*_','',dist_obj) 
+  distn$dist_name = dist_obj_name
+  distn$dist_label = dist_obj_label 
   return(distn)
 }
 
@@ -339,11 +302,10 @@ define_evidence_options <- function(input_obj){
   if(is.null(input_obj))
     return()
   state = reactiveValues()
-  state$evidence_type_suffix = as.character(input_obj)
-  d = unlist(strsplit(state$evidence_type_suffix,'_'))
-  state$parms = d[-length(d)]
+  state$evidence_type = as.character(input_obj)
+  d = unlist(strsplit(state$evidence_type,'_'))
+  state$parms = d
   state$evidence_type = paste(state$parms,collapse='_')
-  state$suffix = d[length(d)]
   state$evidence_parms = if(state$evidence_type != 'ci'){state$parms} else{c('lower_ci','upper_ci','ci_level')}
   state$labels = switch(
     state$evidence_type,
@@ -351,30 +313,24 @@ define_evidence_options <- function(input_obj){
     'ci' = c('Lower interval value','Upper interval value','Confidence level (%)'),
     'r_n' = c('Number of events','Sample size'),
     'min_max' = c('Minimum','Maximum'),
-    'mode_min_max' = c('Most likely value','Minimum', 'Maximum'),
-    'mean' = c('Mean rate')
-  )
-  state$sample_inputs = paste('sample',state$evidence_parms,state$suffix,sep='_')
+    'mode_min_max' = c('Most likely value','Minimum', 'Maximum')  )
+  state$sample_inputs = paste('sample',state$evidence_parms,sep='_')
   return(state)
 }
 
-nice_names <- function(dist_obj){
-  x = gsub('.*_','',dist_obj)
-  dist_name = gsub('_.*','',dist_obj)
-  switch(dist_name,
-         'norm' = paste0('Normal distribution'),
-         'gamma' = paste0('Gamma distribution'),
-         'beta' = paste0('Beta distribution'),
-         'unif' = paste0('Uniform distribution'),
-         'tri' = paste0('Triangular distribution'),
-         'pois' = paste0('Poisson distribution'),
-         'lnorm' = paste0('Log-normal distribution')
+nice_names <- function(dist_obj_name,param_est){
+  switch(dist_obj_name,
+         'norm' = paste0('Normal(',round(param_est[1],2),',',round(param_est[2],2),')'),
+         'gamma' = paste0('Gamma(',round(param_est[1],2),',',round(param_est[2],2),')'),
+         'beta' = paste0('Beta(',round(param_est[1],2),',',round(param_est[2],2),')'),
+         'unif' = paste0('Uniform(',round(param_est[1],2),',',round(param_est[2],2),')'),
+         'lnorm' = paste0('Log-normal(',round(param_est[1],2),',',round(param_est[2],2),')')
   )
 }
 
 nice_names_evidence <- function(evidence_obj){
   d = unlist(strsplit(evidence_obj,'_'))
-  parms = d[-length(d)]
+  parms = d
   evidence_type = paste(parms,collapse='_')
   switch(evidence_type,
          'mean_se' = paste0('Mean with uncertainty'),
@@ -387,12 +343,63 @@ nice_names_evidence <- function(evidence_obj){
 }
 
 #histogram customisation
-colourschemes <- list('Colour'=hcl.colors(2, "Set 2"),  #c("#00AEEF",'#AA4371')
-  'Greyscale' = grey.colors(2,start=0.2,end=0.6))
+
+
+colourschemes <- list('Greyscale' = "Greys",
+                      'Viridis'= "viridis",
+                      'Colour-blind friendly 1 (8 colours)'= c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+                      'Colour-blind friendly 2 (8 colours)'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+                      )
+
+# colourschemes <- function(choose_scheme,n_colours){
+#      switch(choose_scheme,
+#                   'Greyscale' = grey.colors(n_colours),
+#                   'Viridis'=hcl.colors(n_colours,'Viridis'),
+#                   'Colour-blind friendly 1'= c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+#                   'Colour-blind friendly 2'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#                 )}
+
 
 themes <- list("Light" = theme_light(),
                "Minimal" = theme_minimal(),
                "Black/White" = theme_bw(),
-               "Classic" = theme_classic())
+               "Classic" = theme_classic(),
+               "Gray"=theme_gray())
 legend_positions <- list("No" = 'none',
-                         "Yes" = 'top')
+                         "Yes" = 'right')
+
+removeReactiveValuesIndex <- function(rv, ind) { .subset2(rv, "impl")$.values$remove(ind) }
+
+calc_dens <- function(dist_family,parm_est,dist_name){
+  switch(dist_family,
+         'norm' = geom_function(fun = dnorm,args=list(mean=parm_est[1],sd=parm_est[2]),size=1.25,aes(colour=dist_name)),
+         'gamma' = geom_function(fun = dgamma,args=list(shape=parm_est[1],scale=parm_est[2]),size=1.25,aes(colour=dist_name)),
+         'beta' = geom_function(fun = dbeta,args=list(shape1=parm_est[1],shape2=parm_est[2]),size=1.25,aes(colour=dist_name)),
+         'unif' = geom_function(fun = dunif,args=list(min=parm_est[1],max=parm_est[2]),size=1.25,aes(colour=dist_name)),
+         'lnorm' = geom_function(fun = dlnorm,args=list(meanlog=parm_est[1],sdlog=parm_est[2]),size=1.25),aes(colour=dist_name))
+}
+
+
+calc_xlim <- function(dist_family,parm_est){
+  switch(dist_family,
+         'norm' = qnorm(p=c(0.0001,0.9999),mean=parm_est[1],sd=parm_est[2]),
+         'gamma' = qgamma(p=c(0.0001,0.9999),shape=parm_est[1],scale=parm_est[2]),
+         'beta' = qbeta(p=c(0.0001,0.9999),shape1=parm_est[1],shape2=parm_est[2]),
+         'unif' = qunif(p=c(0.0001,0.9999),min=parm_est[1],max=parm_est[2]),
+         'lnorm' = qlnorm(p=c(0.0001,0.9999),meanlog=parm_est[1],sdlog=parm_est[2]))
+}
+
+sect_properties <- prop_section(
+  page_size = page_size(orient = "landscape",
+                        width = 8.3, height = 11.7),
+  type = "continuous",
+  page_margins = page_mar()
+)
+
+FitFlextableToPage <- function(ft, pgwidth = 6){
+  
+  ft_out <- ft %>% autofit()
+  
+  ft_out <- width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable_dim(ft_out)$widths))
+  return(ft_out)
+}

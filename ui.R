@@ -1,174 +1,119 @@
-
-renderInputs <- function(suffix){
-  wellPanel(id=paste0('prior_setup_',suffix),h5(strong(paste("Define inputs for Prior",suffix))),{
-    fluidRow(
-      #Distribution family
-      column(10, 
-             selectInput(inputId = paste0("dist_",suffix),
-                         label = 'Distribution',
-                         choices = c("Beta" = paste0("beta_",suffix),
-                                     "Gamma" = paste0("gamma_",suffix),
-                                     "Normal" = paste0("norm_",suffix),
-                                     "Uniform" = paste0("unif_",suffix),
-                                     "Triangular" = paste0("tri_",suffix),
-                                     "Poisson" = paste0("pois_",suffix),
-                                     'Log-normal' = paste0("lnorm_",suffix)),
-                         selected = paste0("norm_",suffix)),
-             uiOutput(paste0("ui_dist_",suffix))
-             
-      ),
-      # #form of evidence based on distribution selected
-      column(6,
-             uiOutput(paste0("ui_evidence_",suffix))
-      ),
-      #custom label for histogram
-      column(10,textInput(inputId = paste0("prior_label_",suffix),label = 'Label',value=paste0('Prior_',suffix)))
-    )
-  },
-  helpText(paste0('Select the distribution and form of evidence that best describe prior ',
-                  suffix,' . Enter values for all inputs based on options selected.'))
-  )
-}
-
-# Define UI for application that draws a histogram
 shinyUI(fluidPage(
-  useShinyjs(),
-  # Application title
-  titlePanel(("ShinyPrior: A tool for building prior distributions based on published evidence")),
   
+  
+  
+  useShinyjs(),
+  # Application title,
+  titlePanel(("ShinyPrior: A tool for estimating probability distributions using published evidence")),
+  #inlineCSS(".control-label {font-weight: 500}"),
   # Panels
   sidebarLayout(
     sidebarPanel(
-      wellPanel(
-          # Samples
-          fluidRow(
-            #comparison of distributions
-            column(6,
-                   radioButtons(inputId= 'compare',
-                                label = 'Number of prior distributions',
-                                choices=c('Single distribution'=1,
-                                          'Compare two distributions' = 2),
-                                selected=1)),        
-            column(6,numericInput(inputId = 'samples',
-                                label = 'Number of simulations',
-                                value = 10000, min = 1000, max = 1000000,step=1000))
-            
-          ),
-          helpText('Options are to estimate and visualise one prior (`Single distribution`) 
-               or compare two priors based on different distributions and/or forms of evidence 
-               (`Compare two distributions`). ShinyPrior will simulate the same number of values 
-               from each prior distribution.')
-        ),
-        #Prior 1 options
-        renderInputs(1),
-        #Prior 2 options
-        conditionalPanel(condition = "input.compare==2",renderInputs(2)),
-        wellPanel(h5(strong('Run ShinyPrior')),
-                  fluidRow(column(6,actionButton(inputId = "go",label="Simulate from prior distribution(s)"))),
-                  fluidRow(column(6, actionButton("resetAll", "Start over")))
-                  ),
-        
-        wellPanel(h5(strong('Customise output')),
-                  h5(strong('Show summary statistics')),
-                  fluidRow(
-                    column(6,checkboxInput('perc_theory','Theoretical',value=T)),
-                    column(6,checkboxInput('perc_simulated','Simulated',value=T))
-                  ),
-                  h5(strong('Visualisation')),
-                  fluidRow(
-                    column(6,selectInput('colourscheme',h6(strong('Choose colour scheme')),
-                                         choices = names(colourschemes),
-                                         selected = 'Colour')),
-                    column(6, selectInput("theme", label = h6(strong("Select plot theme")), 
-                                          choices = names(themes),
-                                          selected = 'Minimal')),
-                    column(6,textInput('xlabtext',label='x-axis label',
-                                       value = 'Sampled value')),
-                    column(6,textInput('ylabtext',label='y-axis label',
-                                       value = 'Density')),                
-                    column(12,radioButtons('legend',h6(strong('Display legend?')),
-                                           choices = names(legend_positions),
-                                           selected = "Yes",inline = T))
-                  ),
-                  
-                  fluidRow(
-                    column(8,sliderInput('nbins',h6(strong('Number of histogram bins')),
-                                         min = 1,max=50,value=25)),    
-                    column(8,sliderInput('opacity',h6(strong('Opacity')),
-                                         min=0,max=1,value=0.25))
-                  )
-                  
-                  
-        ),
-        wellPanel(h5(strong('Save output')),
-                  h5(strong('Simulated values')),
-                  fluidRow(
-                    column(12,downloadButton("downloadData", "Download as .csv"))
-                  ),
-                  h5(strong('Visualisation')),
-                  fluidRow(
-                    column(3,selectInput("fformat", "Format",
-                                         c("png" = "png",
-                                           "tiff" = "tiff",
-                                           "jpeg" = "jpeg"), 'png')),
-                    
-                    column(3,selectInput(inputId = "fres",
-                                          label = "Resolution",
-                                          c("300dpi"=300,
-                                            "600dpi"=600),
-                                          selected = "300dpi")),
-                    column(3,numericInput(inputId = "fheight",
-                                          label = "Height (cm)",
-                                          min = 8,
-                                          max = 22,
-                                          step = 1,
-                                          value = 10)),
-                    
-                    column(3,numericInput(inputId = "fwidth",
-                                          label = "Width (cm)",
-                                          min = 8,
-                                          max = 22,
-                                          step = 1,
-                                          value = 15))
-                  ),
-                  fluidRow(column(6,downloadButton("downloadFigure", "Download Figure")))
-                  
-        )
-
-      ), #end of sidebarPanel
+      id = "side-panel",
       
-      mainPanel(
-        style="position:fixed;margin-left:32vw;",
+      #Distribution name
+      wellPanel(h5(strong('Step 1. Choose a distribution')),
+                helpText("Select an appropriate distribution for your outcome of interest below.
+                         Enter a short name for your distribution in the 'Description' box. This name will be used in all application outputs"),
+                #Distribution family
+                fluidRow(column(6, 
+                                selectInput(inputId = "dist_family",
+                                            label = 'Distribution family',
+                                            choices = c("Beta" = paste0("beta"),
+                                                        "Gamma" = paste0("gamma"),
+                                                        "Normal" = paste0("norm"),
+                                                        "Uniform" = paste0("unif"),
+                                                        'Log-normal' = paste0("lnorm")),
+                                            selected = paste0("norm")))),
+                
+                fluidRow(column(6,textInput('dist_label',label='Description',placeholder = 'hello_world')))
+      ), #end of wellPanel
+      
+      
+      #Define distribution inputs
+      renderInputs(),
+      
+      
+      #Run application
+      wellPanel(h5(strong('Step 3: Run Application')),
+                helpText("Click on 'Estimate distribution' to generate a tabular summary and density plot. Descriptions aleady stored in the Table will be overwritten."),
+                fluidRow(
+                  column(4,actionButton(inputId = "go",label="Estimate distribution"),
+
+                )),
+                column(12,style='padding-top:15px;'),
+                textOutput("input_error")
+      ),
+      
+      wellPanel(h5(strong('Step 4: Customise output')),
+                column(12,style='padding-top:5px;'),
+                h5(strong('i. Remove results from saved output')),
+                helpText("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
+                fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T)),
+                         column(4,actionButton(inputId = "remove_result",label="Delete from all outputs",style = 'margin-top:25px'))),
+                column(12,style='padding-top:5px;'),
+                h5(strong('iii. Summary table')),
+                helpText("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
+                column(10,checkboxGroupInput(inputId = 'summary_stats',label=NULL,
+                                             choices=c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),
+                                             selected = c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),inline=F)),
+                fluidRow(column(6,textInput(inputId = 'tab_fname',label='Table name',value='table')),
+                  column(10,downloadButton("downloadTable", "Download final table (.docx)"),style = 'margin-top:25px')),
+                fluidRow(column(12,style='padding-bottom:20px;')),
+                
+                h5(strong('ii. Visualisation')),
+                helpText("Customise the appearance of the density plot here. Multiple distributions can be added and removed in the 'Select distribution(s)' box below. When done, click 'Download Figure' to download the customised visualation in the selected format."),
+                #uiOutput("select_output_plot"),
+                fluidRow(column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
+                fluidRow(
+                  column(6,selectInput('colourscheme',label='Choose colour scheme',choices = names(colourschemes),selected = 'Greyscale')),
+                  column(6, selectInput("theme", label = "Select plot theme", choices = names(themes),selected = 'Minimal'))
+                ),
+                fluidRow(column(6,textInput('xlabtext',label='x-axis label',
+                                            value = 'Value')),
+                         column(6,textInput('ylabtext',label='y-axis label',
+                                            value = 'Density'))),
+                fluidRow(column(6,radioButtons(inputId='legend','Display legend?',choices=names(legend_positions),selected = "Yes",inline=TRUE),style = 'margin-top:10px'),
+                         column(6,uiOutput("legend_title"))),
+                fluidRow(
+                  column(3,selectInput("fformat", "Format",c("png" = "png","tiff" = "tiff","jpeg" = "jpeg"), 'png')),
+                  column(3,selectInput(inputId = "fres",label = "Resolution (dpi)",c("300"=300,"600"=600),selected = "300")),
+                  column(3,numericInput(inputId = "fheight",label = "Height (cm)",min = 8,max = 22,step = 1,value = 10)),
+                  column(3,numericInput(inputId = "fwidth",label = "Width (cm)",min = 8,max = 22,step = 1,value = 15))),
+                fluidRow(column(6,textInput(inputId = 'fig_fname',label='Figure name',value='figure')),
+                         column(6,downloadButton("downloadFigure", "Download Figure"),style = 'margin-top:50px')),
+                fluidRow(column(12,style='padding-bottom:20px;'))
+      )
+    ), #end of sidebarPanel
+    
+    mainPanel(
+      style="position:fixed;margin-left:32vw;",
+      
+      
+      # Show a plot of the generated distribution and display summary tables for current and stored distribution
+      fluidRow(column(10,align="center",plotOutput("hist"),style = 'margin-left:75px')),
+      tabsetPanel(
+        id = 'output-tabs',
         
-        # Show a plot of the generated distribution, display summary statistics
-        column(10,
-               plotOutput("hist"),
-               renderUI("param_tabs"),
-               tabsetPanel(
-                 tabPanel('Overview',
-                          p("This application is designed to estimate and visualise prior distributions for use in simulation-based modelling. 
-                    Options focus on using common forms of evidence reported in published articles to estimate unknown distribution parameters."),
-                          h5(strong("Contacts")),
-                          p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au) or Robin Blythe (robin.blythe@qut.edu.au)")
-                 ),
-                 tabPanel("Parameter estimates",
-                          tableOutput("param_est")
-                 ),
-                 tabPanel("Summary statistics",
-                          conditionalPanel(condition = "input.perc_theory",
-                                           h5(strong('Expected under chosen distribution (theoretical)')),
-                                           tableOutput("stats_theory")),
-                          conditionalPanel(condition = "input.perc_simulated",
-                                           h5(strong('Estimated from simulation output')),
-                                           textOutput("n_draws"),
-                                           tableOutput("stats_simulated"))
-             )
-                 
-               )
+        #                renderUI(HTML(
+        #                  <a href="mailto:hello@rshiny.com?
+        # body='Hello,World!  Check out my data.'
+        # &subject='Data'
+        # &attachment='\\myfolder\shinyData.csv'">click here for email!</a>
+        #                ))
+        #tabPanel("Distribution summary",tableOutput("stats_theory")),
+        tabPanel("Table",column(10,style='padding-bottom:20px;'),column(12, align="center",tableOutput("param_est"))),
+        tabPanel('About ShinyPrior',
+                 p("BLAHBLAHBLAHBLAHBLAH"),
+                 h5(strong("Contacts")),
+                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)[add email link]")
         )
       )
     )
   )
 )
+)
 
+
+""
 

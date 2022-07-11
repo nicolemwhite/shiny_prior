@@ -1,285 +1,171 @@
 shinyServer(function(input, output,session) {
-
+  
   #renderUI 
-  #Prior 1
-  dist_info_1 <- reactive(define_dist_options(input[['dist_1']]))  #list with dist_name, suffix
-  evidence_info_1 <- reactive({define_evidence_options(input[['parms_in_1']])}) #list with evidence_type, labels, suffix
+  dist_info <- reactive({define_dist_options(input[['dist_family']],input[['dist_label']])})  
+  evidence_info <- reactive({define_evidence_options(input[['parms_in']])}) 
   
+  output$ui_dist <- renderUI({renderDistIn(dist_info())})
+  output$ui_evidence <-renderUI({renderParmsIn(evidence_info())})
   
-  output$ui_dist_1 <- renderUI({
-    renderDistIn(dist_info_1())
-  })
-  output$ui_evidence_1 <-renderUI({
-    renderParmsIn(evidence_info_1(),dist_info_1())
-  })
-  
-  
-  #Prior 2
-  dist_info_2 <- reactive(define_dist_options(input[['dist_2']]))  #list with dist_name, suffix
-  evidence_info_2 <- reactive({define_evidence_options(input[['parms_in_2']])}) #list with evidence_type, labels, suffix
-  
-  output$ui_dist_2 <- renderUI({
-    renderDistIn(dist_info_2())
-  })
-  output$ui_evidence_2 <-renderUI({
-    renderParmsIn(evidence_info_2(),dist_info_2())
-  })
-  
-  observeEvent(input[['compare']]==2,{
-    shinyjs::toggle(id='prior_setup_2')
-  })
-  
-
-  #combine into dist_info, evidence_info
-  dist_info <- reactive({
-    list(dist_info_1(),dist_info_2())
-  })
-  evidence_info <- reactive({
-    list(evidence_info_1(),evidence_info_2())
-  })
-  
-  estimate_info = reactive({lapply(seq(n_prior()),function(x){
-    sample_labels = evidence_info()[[x]]$sample_inputs
+  estimate_info = reactive({
+    sample_labels = evidence_info()$sample_inputs
     sapply(seq(sample_labels),function(z) input[[paste0(sample_labels[z])]])
-    }) 
   })
   
-  #define number of priors as reactive function
-  n_prior = reactive({as.numeric(input[['compare']])})
   
-  
-  #estimate parameters
-  parameter_estimates = reactive({lapply(seq(n_prior()),function(x){
-     validate(
-       check_missing_inputs(estimate_info()[[x]])
-     )
-    validate(
-      check_dist_params(dist_info()[[x]]$dist_name,evidence_info()[[x]]$evidence_type,estimate_info()[[x]],x)
-    )
-
-    estimate_dist_parameters(dist_name=dist_info()[[x]]$dist_name,
-                             evidence_type= evidence_info()[[x]]$evidence_type,
-                             sample_dat=estimate_info()[[x]])})
-  })
-
+  #estimate parameters based on data provided and chosen distribution
+  parameter_estimates = function(){#reactive({
+    #estimate distribution based on evidence inputted
+    estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
+    #}) #end of reactive function
+  }
   #theoretical moments based on parameters estimates
   dist_summary = function(){
-    n_prior = as.numeric(input[['compare']])
-    dat_list = lapply(seq(n_prior),function(x){
-      data.frame(Prior=x,
-                 Label = input[[paste0('prior_label_',x)]],
-                 Distribution = nice_names(input[[paste0('dist_',x)]]),
-                 Evidence = simulated_values()$evidence_type[[x]],
-                 Mean = parameter_estimates()[[x]]['Mean'],
-                 SD = parameter_estimates()[[x]]['Standard deviation'],
-                 p2.5 = parameter_estimates()[[x]]['p2.5'],
-                 p25 = parameter_estimates()[[x]]['p25'],                 
-                 p50 = parameter_estimates()[[x]]['p50'],
-                 p75 = parameter_estimates()[[x]]['p75'],
-                 p97.5 = parameter_estimates()[[x]]['p97.5'])
-    })
-    dat = do.call(rbind.data.frame,dat_list)
-    dat$Distribution =  gsub('distribution','',dat$Distribution)
+    validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))
     
-    return(dat) 
-  }
-  
-  #main simulation functions for output
-  get_draws = function(){
-    validate(check_nsims(input$samples))
-    out = reactiveValues()
-    n_prior = as.numeric(input[['compare']])
-    dat = sapply(seq(n_prior),function(x) sim_values(input[[paste0('dist_',x)]],input[['samples']],parameter_estimates()[[x]]))
-    dat = as.data.frame(dat)
-    out$prior_labels = lapply(seq(n_prior),function(x) input[[paste0('prior_label_',x)]])
-    validate(check_prior_labels(out$prior_labels,n_prior))
-    colnames(dat) = out$prior_labels
-    dat = dat %>% rowid_to_column(.,var='simulation')
-    out$dat = gather(dat,variable,value,-simulation)
-    out$dist_names = lapply(seq(n_prior),function(x) nice_names(input[[paste0('dist_',x)]]))
-    out$evidence_type = lapply(seq(n_prior),function(x) nice_names_evidence(input[[paste0('parms_in_',x)]]))
-    return(out)
-  }
-  
-  tabluate_param_estimates = function(){
-    n_prior = as.numeric(input[['compare']])
-    dat_list = lapply(seq(n_prior),function(x){
-      data.frame(Prior=x,
-                 Label = input[[paste0('prior_label_',x)]],
-                 Distribution = nice_names(input[[paste0('dist_',x)]]),
-                 Evidence = simulated_values()$evidence_type[[x]],
-                 Parameter = names(parameter_estimates()[[x]][1:2]),
-                 Estimate=(parameter_estimates()[[x]][1:2])
-      ) 
-    })
     
-    dat = do.call(rbind.data.frame,dat_list)
-    return(dat) 
-  }
-
-  print_summary_tab = function(){
-    dat = simulated_values()$dat
-    prior_labels = simulated_values()$prior_labels
-    dist_names = simulated_values()$dist_names
-    dist_names = gsub('distribution','',dist_names)
-    evidence_type = simulated_values()$evidence_type
-    tab_dat = dat %>% group_by(variable) %>% summarise(Mean = mean(value,na.rm=T),
-                                                       SD = sd(value,na.rm=T),
-                                                       `p2.5` = quantile(value,0.025,na.rm=T),
-                                                       `p25` = quantile(value,0.25,na.rm=T),
-                                                       `p50` = quantile(value,0.5,na.rm=T),
-                                                       `p75` = quantile(value,0.75,na.rm=T),
-                                                       `p97.5` = quantile(value,0.975,na.rm=T)) %>%
-      ungroup(variable) %>% 
-      rename('Label'=variable) %>%
-      add_column(.,'Prior'=seq(prior_labels),'Distribution'=dist_names,Evidence=evidence_type) %>%
-      select(Prior,Label,Distribution,Evidence,everything())
-    return(data.frame(tab_dat))
+    #table
+    dat = data.frame("Description" = input[['dist_label']],
+                     "Form of evidence" = nice_names_evidence(input[['parms_in']]),
+                     "Distribution" = nice_names(input[['dist_family']],parameter_estimates()[1:2]),
+                     "Mean (95% uncertainty interval)" = paste0(round(parameter_estimates()['Mean'],2),' (',round(parameter_estimates()['p2.5'],2),' to ',round(parameter_estimates()['p97.5'],2),')'),
+                     "Median (Q1 to Q3)" = paste0(round(parameter_estimates()['p50'],2),' (',round(parameter_estimates()['p25'],2),' to ',round(parameter_estimates()['p75'],2),')'),check.names=F)
     
-  }
-  
-  #eventReactive
-  simulated_values = eventReactive(input$go,({
-    get_draws()
-  })
-  )
-  parms_est = eventReactive(input$go,({
-    tabluate_param_estimates()
-  })
-  )
-  
-  parms_est_theory = eventReactive(input$go,({
-    dist_summary()
-  })
-  )
-
-  display_summary_table =eventReactive(input$go,{(
-    print_summary_tab()
-  )})
-  
-
-
-  build_histograms = reactive({
+    #figure
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
-    legend_posn = legend_positions[[input$legend]]
-      
-    plot_dat = simulated_values()$dat
-    dist_names = simulated_values()$dist_names
-    prior_labels = simulated_values()$prior_labels
-    if(sum(dist_names=='Poisson distribution')==0){
-      g = ggplot(plot_dat,aes(x=value,colour=variable))+
-        geom_histogram(aes(y=..density..,fill=variable),bins=as.numeric(input$compare)*input$nbins,alpha=input$opacity,position='identity')+
-        scale_fill_manual(values=plot_colours)+
-        scale_colour_manual(values=plot_colours)+
-        xlab(input$xlabtext)+ylab(input$ylabtext)+
-        plot_theme+
-        theme(text=element_text(size=12),
-              axis.text.x = element_text(size=12),
-              axis.text.y = element_text(size=12),              
-              legend.title = element_blank(),
-              legend.position = legend_posn,
-              legend.direction = 'horizontal')+
-        scale_x_continuous(breaks=round(seq(min(plot_dat$value),max(plot_dat$value),length.out=10),2))
-      
-    }
-    #special case: poisson distribution
-    if(sum(dist_names=='Poisson distribution')>0){
-      g = ggplot(plot_dat,aes(x=value,colour=variable))+
-        geom_histogram(aes(y=..density..,fill=variable),bins = input$nbins,alpha=input$opacity,position='identity')+
-        scale_fill_manual(values=plot_colours)+
-        scale_colour_manual(values=plot_colours)+
-        xlab(input$xlabtext)+ylab(input$ylabtext)+
-        plot_theme+
-        theme(text=element_text(size=12),
-              axis.text.x = element_text(size=12),
-              axis.text.y = element_text(size=12),              
-              legend.title = element_blank(),
-              legend.position = input$legend_position,
-              legend.direction = 'horizontal') +
-        expand_limits(x=c(floor(min(plot_dat$value)),ceiling(max(plot_dat$value))))+
-        scale_x_continuous(breaks=round(seq(min(plot_dat$value),max(plot_dat$value),length.out=10),2))
-    }
-    g
-  })
+    #legend_posn = legend_positions[[input$legend]]
+    
+    return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates()[1:2],table_output = dat)) 
+  }
+  
+  #any_missing = eventReactive(input$go,({validate(check_missing_inputs(estimate_info()))}))
+  bad_dist_params = eventReactive(input$go,({validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))}))
+  
+  
   
   #Outputs
-
-  output$n_draws = renderText({
-    paste('Number of simulations per prior:',input$samples)
-  })
-  #plot histogram
-  output$hist = renderPlot({
-    build_histograms()
-  })  
+  generate_outputs = eventReactive(input$go,({dist_summary()}))
   
-  output$param_est = renderTable({
-    parms_est()
-  })  
-
-
-  #print summary statistics
-  output$stats_simulated <-renderTable(spacing='xs',{
-    display_summary_table()
-  })
   
-  output$stats_theory = renderTable({
-    parms_est_theory()
-  })
+  #Saved output
+  results <- reactiveValues(output_name = NULL,output_family = NULL,param_est = NULL,table_output = NULL)
 
   
-  observeEvent(input$resetAll, {
-    updateRadioButtons(session, "compare", selected=1)
-    updateNumericInput(session,'samples',value=10000)
-    shinyjs::reset("prior_setup_1")
-    shinyjs::reset("prior_setup_2")
-    updateCheckboxInput(session,'perc_theory',value=T)
-    updateCheckboxInput(session,'perc_simulated',value=T)
-    updateSelectInput(session,"colourscheme",selected = 'Colour')
-    updateSelectInput(session,"theme",selected = 'Minimal')
-    updateTextInput(session,'xlabtext',value='Sampled value')
-    updateTextInput(session,'ylabtext',value='Density')
-    updateRadioButtons(session,"legend",selected="Yes")
-    updateSliderInput(session,'nbins',value=25)
-    updateSliderInput(session,'opacity',value=0.25)
-    updateSelectInput(session,"fformat",selected='png')
-    updateNumericInput(session,"fres",value=300)
-    updateNumericInput(session,"fheight",value=10)
-    updateNumericInput(session,"fwidth",value=15)
+  plot_colours <- reactive({
+  custom_palette <- col_factor(palette = colourschemes[[input$colourscheme]], domain = seq_along(input$select_output_plot),reverse=T,alpha=T)
+  out <- custom_palette(1:length(input$select_output_plot))
+  names(out) <- input$select_output_plot
+  out
   })
-
   
-  #download csv file with simulations
-  output$downloadData <- downloadHandler(
-    filename = function() {
-      paste("prior_simulations.csv", sep = "")
-    },
-    content = function(file) {
-      dat = simulated_values()$dat 
-      dat = spread(dat,variable,value)
-      write.csv(dat, file, row.names = FALSE)
+  create_density_plot <- function(){
+    #if(input$colourscheme == "Greyscale") {color_selected = "Greys"}
+    #if(input$colourscheme == "Viridis") {color_selected = "Viridis"}
+    
+    plot_theme = themes[[input$theme]]
+    show_legend = legend_positions[[input$legend]]
+    legend_title = input$custom_legend_title
+    include_vars <-  intersect(input$select_output_plot,results$output_name)
+    n_var <- length(include_vars)
+    
+    if(length(include_vars)>0){
+      #plot_colours <- custom_palette()
+      #names(plot_colours) <- include_vars
+      x_limits <- lapply(include_vars, function(i){calc_xlim(results[['output_family']][[i]],results[['param_est']][[i]])})
+      x_min <- min(unlist(x_limits))
+      x_max <- max(unlist(x_limits))
+      
+     ggplot(data = data.frame(x=c(x_min,x_max)),aes(x)) + 
+        lapply(include_vars, function(i){
+          calc_dens(results[['output_family']][[i]],results[['param_est']][[i]],results[['output_name']][[i]])
+        })+
+        scale_colour_manual(values=plot_colours(),name=legend_title)+
+        xlab(input$xlabtext)+ylab(input$ylabtext)+
+        plot_theme+theme(text=element_text(size=14),axis.text.x = element_text(size=14),axis.text.y = element_text(size=14),
+                         legend.position = show_legend) #legend.title = element_text(legend_title)
     }
-  )
+  }
+  
+  create_table <- function(){
+    ftab <- bind_rows(results[['table_output']])
+    if(nrow(ftab)>0){
+      if(!is.null(input$summary_stats)) ftab <- ftab[,c("Description",input$summary_stats)]
+      else ftab <- data.frame(Description = ftab[,1]) 
+    }
+    ftab
+  }
+  
+  observeEvent(input$go,if(input$dist_label!=''){
+    add_results <- generate_outputs()
+    for(x in names(results)){results[[x]][[input$dist_label]] <<- add_results[[x]]}
+  })
+  
+  observeEvent(input$remove_result,{
+    current_names <- unlist(results$output_name)
+    to_remove <- input$select_output
+    keep_results <- results
+    for(x in names(results)){results[[x]] <<- keep_results[[x]][!(current_names %in% to_remove)]}
 
-  fn_download <- function()
+  })
+  
+  observe({updateSelectInput(session,inputId = "select_output",choices=results[['output_name']])})
+  observe({updateSelectInput(session,inputId = "select_output_plot",choices=results[['output_name']],selected=isolate(input$dist_label))})
+
+  output$legend_title <- renderUI({
+    if (input$legend == 'No') return(NULL) else {
+      textInput(inputId ='custom_legend_title',label='Legend title',value='Description')
+    }
+  })
+
+  output$input_error <- renderText({bad_dist_params()})
+  output$hist = renderPlot({create_density_plot()})
+  output$param_est = renderTable({create_table()})
+  
+  #download outputs
+  #table - to do
+  fn_download_tab <- function(){
+    ftab <- create_table() %>% flextable() %>% fontsize(size-10,part=c("header","body")) %>% FitFlextableToPage()
+    save_as_docx(ftab,path=fn_downloadname_tab())
+  }
+  # create filename
+  fn_downloadname_tab <- reactive({
+    fname = isolate(input$tab_fname)
+    filename <- paste0(fname,".docx",sep="")
+    return(filename)
+  })
+  
+  # download handler
+  output$downloadTable<- downloadHandler(
+    filename = fn_downloadname_tab,
+    content = function(file) {
+      fn_download_tab()
+      file.copy(fn_downloadname_tab(), file, overwrite=T)
+    }
+  )  
+  ##
+  
+  
+  #figure
+  fn_download_fig <- function()
   {
     fheight <- input$fheight
     fwidth <- input$fwidth
     fres <- as.numeric(input$fres)
-
+    
     # open file dependent on format    
-    if(input$fformat=="png") png(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm")
-    if(input$fformat=="tiff") tiff(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm", compression="lzw")
-    if(input$fformat=="jpeg") jpeg(fn_downloadname(), height=fheight, width=fwidth, res=fres, units="cm", quality=100)
-
-    g = build_histograms()
+    if(input$fformat=="png") png(fn_downloadname_fig(), height=fheight, width=fwidth, res=fres, units="cm")
+    if(input$fformat=="tiff") tiff(fn_downloadname_fig(), height=fheight, width=fwidth, res=fres, units="cm", compression="lzw")
+    if(input$fformat=="jpeg") jpeg(fn_downloadname_fig(), height=fheight, width=fwidth, res=fres, units="cm", quality=100)
+    
+    g = create_density_plot()
     print(g)
     dev.off()
   }
   # create filename
-  fn_downloadname <- reactive({
+  fn_downloadname_fig <- reactive({
     
-    fname = 'histogram'
+    fname = isolate(input$fig_fname)
     if(input$fformat=="png") filename <- paste0(fname,".png",sep="")
     if(input$fformat=="tiff") filename <- paste0(fname,".tif",sep="")
     if(input$fformat=="jpeg") filename <- paste0(fname,".jpg",sep="")
@@ -288,12 +174,12 @@ shinyServer(function(input, output,session) {
   
   # download handler
   output$downloadFigure <- downloadHandler(
-    filename = fn_downloadname,
+    filename = fn_downloadname_fig,
     content = function(file) {
-      fn_download()
-      file.copy(fn_downloadname(), file, overwrite=T)
+      fn_download_fig()
+      file.copy(fn_downloadname_fig(), file, overwrite=T)
     }
   )  
- 
+  
   
 })
