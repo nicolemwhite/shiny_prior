@@ -53,9 +53,10 @@ shinyServer(function(input, output,session) {
 
   
   plot_colours <- reactive({
-  custom_palette <- col_factor(palette = colourschemes[[input$colourscheme]], domain = seq_along(input$select_output_plot),reverse=T,alpha=T)
-  out <- custom_palette(1:length(input$select_output_plot))
-  names(out) <- input$select_output_plot
+  #custom_palette <- col_factor(palette = colourschemes[[input$colourscheme]], domain = seq_along(input$select_output_plot),reverse=T,alpha=T)
+  # out <- custom_palette(1:length(input$select_output_plot))
+  out <-colourschemes[[input$colourscheme]][1:length(input$select_output_plot)]
+    names(out) <- input$select_output_plot
   out
   })
   
