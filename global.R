@@ -112,9 +112,9 @@ estimate_beta = function(evidence_type,sample_values){
 }  
 
 check_beta_params <- function(evidence_type,sample_vals){
-  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Distribution",prior_number,"(Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
+  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check inputs defined for Distribution",prior_number,"(Beta distribution): Lower and upper interval values must be between 0 and 1")}
+  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
   else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
   else if (evidence_type=='r_n' & sample_vals[1]>sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
