@@ -4,6 +4,7 @@ library(tidyverse)
 library(scales)
 library(rriskDistributions)
 library(flextable)
+library(officer)
 library(RColorBrewer)
 #DISTRIBUTIONS
 #simulate values based on distribution and parameter estimates
