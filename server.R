@@ -126,7 +126,7 @@ shinyServer(function(input, output,session) {
   #download outputs
   #table - to do
   fn_download_tab <- function(){
-    ftab <- create_table() %>% flextable() %>% fontsize(size-10,part=c("header","body")) %>% FitFlextableToPage()
+    ftab <- create_table() %>% flextable() %>% fontsize(size=10,part=c("all")) %>% FitFlextableToPage()
     save_as_docx(ftab,path=fn_downloadname_tab())
   }
   # create filename
