@@ -108,7 +108,7 @@ shinyUI(fluidPage(
         tabPanel('About ShinyPrior',
                  p("Summary here with link to preprint/vignette"),
                  h5(strong("Contacts")),
-                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)[add email link]")
+                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)")
         )
       )
     )
