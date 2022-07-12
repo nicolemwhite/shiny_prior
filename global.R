@@ -5,6 +5,7 @@ library(scales)
 library(rriskDistributions)
 library(flextable)
 library(officer)
+library(RColorBrewer)
 #DISTRIBUTIONS
 #simulate values based on distribution and parameter estimates
 estimate_normal = function(evidence_type,sample_values){
@@ -342,22 +343,17 @@ nice_names_evidence <- function(evidence_obj){
   )
 }
 
-#histogram customisation
 
 
-colourschemes <- list('Greyscale' = "Greys",
-                      'Viridis'= "viridis",
-                      'Colour-blind friendly 1 (8 colours)'= c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
-                      'Colour-blind friendly 2 (8 colours)'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+colourschemes <- list('Greyscale' = c("#000000","#737373","#BDBDBD","#D9D9D9","#F0F0F0"),#"Greys",
+                      'Accent' = c("#7FC97F","#BEAED4","#FDC086","#FFFF99","#386CB0","#F0027F","#BF5B17","#666666"),
+                      'Dark2'= brewer.pal(n=8,name="Dark2"),
+                      'Paired'=brewer.pal(n=8,name="Paired"),
+                      "Set1" = brewer.pal(n=8,name="Set1"),
+                      "Set2"=brewer.pal(n=8,name="Set2"),
+                      "Set3"=brewer.pal(n=8,name="Set3"),
+                      'Colour-blind friendly'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
                       )
-
-# colourschemes <- function(choose_scheme,n_colours){
-#      switch(choose_scheme,
-#                   'Greyscale' = grey.colors(n_colours),
-#                   'Viridis'=hcl.colors(n_colours,'Viridis'),
-#                   'Colour-blind friendly 1'= c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
-#                   'Colour-blind friendly 2'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-#                 )}
 
 
 themes <- list("Light" = theme_light(),
