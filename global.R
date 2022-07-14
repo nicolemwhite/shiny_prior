@@ -111,12 +111,14 @@ estimate_beta = function(evidence_type,sample_values){
            p97.5 = qbeta(0.975,shape1=a_est,shape2=b_est)))
 }  
 
+
+#testing needed
 check_beta_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
   else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
-  else if (evidence_type=='r_n' & sample_vals[1]>sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
+  else if (evidence_type=='r_n' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
 }
 
@@ -237,7 +239,7 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
 
 renderInputs <- function(){
   wellPanel(id='dist_inputs',h5(strong(paste("Step 2: Define distribution inputs"))),
-            helpText(paste0('Select the form of evidence available to estimate the distribution in Step 1. 
+            h6(paste0('Select the form of evidence available to estimate the distribution in Step 1. 
                             Enter values for all inputs based on the form of evidence selected.')),
             #form of evidence based on distribution selected
             fluidRow(column(6,uiOutput(paste0("ui_dist")))),

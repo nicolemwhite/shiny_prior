@@ -90,11 +90,26 @@ shinyServer(function(input, output,session) {
   
   create_table <- function(){
     ftab <- bind_rows(results[['table_output']])
+    dist_family <- unlist(results[['output_family']])
+
+    
     if(nrow(ftab)>0){
-      if(!is.null(input$summary_stats)) ftab <- ftab[,c("Description",input$summary_stats)]
-      else ftab <- data.frame(Description = ftab[,1]) 
+      if(!is.null(input$summary_stats)){
+        ftab <- ftab[,c("Description",input$summary_stats)] 
+        }
+      else{ftab <- data.frame(Description = ftab[,1])}
+      
+      if(!is.null(input$table_order)){
+      #temporarily add dist_family to ftab
+      ftab <- ftab %>% add_column('Distribution family'=dist_family)
+      
+      row_order_vars <- intersect(input$table_order,colnames(ftab))
+      ftab <- ftab %>% arrange(across((row_order_vars))) %>% select(-'Distribution family')
+      }
     }
-    ftab
+    
+        
+    ftab 
   }
   
   observeEvent(input$go,if(input$dist_label!=''){
