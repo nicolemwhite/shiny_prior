@@ -52,7 +52,7 @@ estimate_gamma = function(evidence_type,sample_values){
     cilevel_est = sample_values[3]/100
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
-    values = get.gamma.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F)
+    values = get.gamma.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F,plot=F)
     names(values) = NULL
     shape_est = values[1]
     scale_est = 1/values[2]
@@ -95,7 +95,7 @@ estimate_beta = function(evidence_type,sample_values){
     cilevel_est = sample_values[3]/100
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
-    values = get.beta.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F)
+    values = get.beta.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F,plot=F)
     names(values) = NULL
     a_est = values[1]
     b_est = values[2]
