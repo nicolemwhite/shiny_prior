@@ -53,11 +53,10 @@ shinyServer(function(input, output,session) {
 
   
   plot_colours <- reactive({
-  #custom_palette <- col_factor(palette = colourschemes[[input$colourscheme]], domain = seq_along(input$select_output_plot),reverse=T,alpha=T)
-  # out <- custom_palette(1:length(input$select_output_plot))
-  out <-colourschemes[[input$colourscheme]][1:length(input$select_output_plot)]
+    need(expr=length(input$select_output_plot)<=length(colourschemes[[input$colourscheme]]),message=paste("The number of distributions exceeds the number of colours in the chosen colour scheme"))
+    out <-colourschemes[[input$colourscheme]][1:length(input$select_output_plot)]
     names(out) <- input$select_output_plot
-  out
+    out
   })
   
   create_density_plot <- function(){
@@ -71,8 +70,6 @@ shinyServer(function(input, output,session) {
     n_var <- length(include_vars)
     
     if(length(include_vars)>0){
-      #plot_colours <- custom_palette()
-      #names(plot_colours) <- include_vars
       x_limits <- lapply(include_vars, function(i){calc_xlim(results[['output_family']][[i]],results[['param_est']][[i]])})
       x_min <- min(unlist(x_limits))
       x_max <- max(unlist(x_limits))
