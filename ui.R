@@ -98,19 +98,15 @@ shinyUI(fluidPage(
       fluidRow(column(10,align="center",plotOutput("hist"),style = 'margin-left:75px')),
       tabsetPanel(
         id = 'output-tabs',
-        
-        #                renderUI(HTML(
-        #                  <a href="mailto:hello@rshiny.com?
-        # body='Hello,World!  Check out my data.'
-        # &subject='Data'
-        # &attachment='\\myfolder\shinyData.csv'">click here for email!</a>
-        #                ))
-        #tabPanel("Distribution summary",tableOutput("stats_theory")),
         tabPanel("Table",column(10,style='padding-bottom:20px;'),column(12, align="center",tableOutput("param_est"))),
         tabPanel('About ShinyPrior',
                  p("Summary here with link to preprint/vignette"),
                  h5(strong("Contacts")),
-                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)")
+                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
+
+                 actionButton(inputId='ab1', label="Learn More", 
+                              icon = icon("th"), 
+                              onclick ="window.open('https://www.aushsi.org.au/', '_blank')")
         )
       )
     )
