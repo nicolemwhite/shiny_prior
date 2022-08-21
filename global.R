@@ -1,7 +1,6 @@
 library(shiny)
 library(shinyjs)
 library(tidyverse)
-#library(scales)
 library(flextable)
 library(officer)
 library(RColorBrewer)
@@ -285,7 +284,7 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
 
 renderInputs <- function(){
   wellPanel(id='dist_inputs',h5(strong(paste("Step 2: Define distribution inputs"))),
-            h6(paste0('Select the form of evidence available to estimate the distribution in Step 1. 
+            h5(paste0('Select the form of evidence available to estimate the distribution in Step 1. 
                             Enter values for all inputs based on the form of evidence selected.')),
             #form of evidence based on distribution selected
             fluidRow(column(6,uiOutput(paste0("ui_dist")))),

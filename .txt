@@ -1,0 +1,13 @@
+TO DO
+remove dependence of rriskDistributions. Used for beta and gamma only. use a hard coded non-linear optimiser
+think about adding a meta analysis function
+add a survey link for people for share new ideas for functionality
+
+
+https://stats.stackexchange.com/questions/38501/beta-distribution-from-mean-and-quantile
+
+https://stackoverflow.com/questions/51091293/how-do-i-estimate-parameters-of-beta-distribution-with-known-percentiles-in-r
+
+https://stackoverflow.com/questions/14266354/how-can-i-estimate-the-shape-and-scale-of-a-gamma-dist-with-a-particular-mean-a
+
+https://stats.stackexchange.com/questions/6022/estimating-a-distribution-based-on-three-percentiles

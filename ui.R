@@ -14,7 +14,7 @@ shinyUI(fluidPage(
       
       #Distribution name
       wellPanel(h5(strong('Step 1. Choose a distribution')),
-                h6("Select an appropriate distribution for your outcome of interest below.
+                h5("Select an appropriate distribution for your outcome of interest below.
                          Enter a short name for your distribution in the 'Description' box. This name will be used in all application outputs"),
                 #Distribution family
                 fluidRow(column(6, 
@@ -38,7 +38,7 @@ shinyUI(fluidPage(
       
       #Run application
       wellPanel(h5(strong('Step 3: Run Application')),
-                h6("Click on 'Estimate distribution' to generate a tabular summary and density plot. Descriptions aleady stored in the Table will be overwritten."),
+                h5("Click on 'Estimate distribution' to generate a tabular summary and density plot. Descriptions aleady stored in the Table will be overwritten."),
                 fluidRow(
                   column(4,actionButton(inputId = "go",label="Estimate distribution"),
 
@@ -50,12 +50,12 @@ shinyUI(fluidPage(
       wellPanel(h5(strong('Step 4: Customise output')),
                 column(12,style='padding-top:5px;'),
                 h5(strong('i. Remove results from saved output')),
-                h6("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
+                h5("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
                 fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T)),
                          column(4,actionButton(inputId = "remove_result",label="Remove",style = 'margin-top:25px'))),
                 column(12,style='padding-top:5px;'),
                 h5(strong('iii. Summary table')),
-                h6("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
+                h5("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
                 column(10,checkboxGroupInput(inputId = 'summary_stats',label=NULL,
                                              choices=c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),
                                              selected = c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),inline=F)),
@@ -66,7 +66,7 @@ shinyUI(fluidPage(
                 fluidRow(column(12,style='padding-bottom:20px;')),
                 
                 h5(strong('ii. Visualisation')),
-                h6("Customise the appearance of the density plot here. Multiple distributions can be added and removed in the 'Select distribution(s)' box below. When done, click 'Download Figure' to download the customised visualation in the selected format."),
+                h5("Customise the appearance of the density plot here. Multiple distributions can be added and removed in the 'Select distribution(s)' box below. When done, click 'Download Figure' to download the customised visualation in the selected format."),
                 fluidRow(column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
 
                 fluidRow(
@@ -117,7 +117,4 @@ shinyUI(fluidPage(
   )
 )
 )
-
-
-""
 
