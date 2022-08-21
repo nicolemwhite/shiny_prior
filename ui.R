@@ -24,7 +24,8 @@ shinyUI(fluidPage(
                                                         "Gamma" = paste0("gamma"),
                                                         "Normal" = paste0("norm"),
                                                         "Uniform" = paste0("unif"),
-                                                        'Log-normal' = paste0("lnorm")),
+                                                        'Log-normal' = paste0("lnorm"),
+                                                        "Weibull" = paste0("weib")),
                                             selected = paste0("norm")))),
                 
                 fluidRow(column(6,textInput('dist_label',label='Description',placeholder = 'hello_world')))

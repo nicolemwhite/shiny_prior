@@ -1,8 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(tidyverse)
-library(scales)
-library(rriskDistributions)
+#library(scales)
 library(flextable)
 library(officer)
 library(RColorBrewer)
@@ -38,24 +37,24 @@ check_normal_params <- function(evidence_type,sample_vals){
   else{NULL}
 }
 
-#gamma distribution: mean_se only
+#gamma distribution
 estimate_gamma = function(evidence_type,sample_values){
   if(evidence_type=='mean_se'){
     mean_est = sample_values[1]
     sigma_est = sample_values[2]
     shape_est = (mean_est/sigma_est)^2
-    scale_est = (sigma_est^2)/mean_est
-  }
+    scale_est = (sigma_est^2)/mean_est 
+    }
   if(evidence_type=='ci'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
     cilevel_est = sample_values[3]/100
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
-    values = get.gamma.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F,plot=F)
-    names(values) = NULL
-    shape_est = values[1]
-    scale_est = 1/values[2]
+    f <- function(a){(qgamma(p2,shape=exp(a),scale=1)/qgamma(p1,shape=exp(a),scale=1)) - cihigh_est/cilow_est}
+    out = uniroot(f,interval=c(-1,1),extendInt = "yes",check.conv=T) 
+    shape_est = exp(out$root)
+    scale_est = 0.5*(cilow_est/qgamma(p1,shape=shape_est,scale=1) + cihigh_est/qgamma(p2,shape=shape_est,scale=1))
   }
   
   return(c(Shape=shape_est,Scale=scale_est,
@@ -73,6 +72,44 @@ check_gamma_params <- function(evidence_type,sample_vals){
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Gamma distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Gamma distribution): Lower and upper interval values must be greater than 0")}
   else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
+  else{NULL}
+}
+
+#weibull distribution
+estimate_weibull = function(evidence_type,sample_values){
+  if(evidence_type=='mean_se'){
+    mu_est = sample_values[1]
+    sigma_est = sample_values[2]
+    f = function(a) (((sigma_est/mu_est)^2) - (gamma(1+2/exp(a))/((gamma(1+1/exp(a)))^2)) + 1)
+    out <- uniroot(f,interval=c(-1,1),extendInt = "yes") 
+    shape_est <- exp(out$root)
+    scale_est <- mu_est/gamma(1+1/shape_est)
+  }
+  if(evidence_type=='ci'){
+    cilow_est = sample_values[1]
+    cihigh_est = sample_values[2]
+    cilevel_est = sample_values[3]/100
+    p1 = (1-cilevel_est)/2
+    p2 = 1-p1
+    shape_est = (log(-log(1-p2))-log(-log(1-p1)))/(log(cihigh_est)-log(cilow_est))
+    #take average value for scale_est to account for rounding errors in inputs
+    scale_est = 0.5*(cilow_est/((-log(1-p1))^(1/shape_est)) + cihigh_est/((-log(1-p2))^(1/shape_est)))
+  }
+  return(c(Shape=shape_est,Scale=scale_est,
+           Mean=scale_est*gamma(1+1/shape_est),
+           `Standard deviation`=scale_est*sqrt(gamma(1+2/shape_est)-(gamma(1+1/shape_est))^2),
+           p2.5= qweibull(0.025,shape=shape_est,scale=scale_est),
+           p25 = qweibull(0.25,shape=shape_est,scale=scale_est),
+           p50 = qweibull(0.5,shape=shape_est,scale=scale_est),
+           p75 = qweibull(0.75,shape=shape_est,scale=scale_est),
+           p97.5 = qweibull(0.975,shape=shape_est,scale=scale_est)))
+}
+
+check_weibull_params <- function(evidence_type,sample_vals){
+  if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Weibull distribution): Mean and uncertainty estimates must be greater than 0")}
+  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Weibull distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Weibull distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution input (Weibull distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -95,11 +132,17 @@ estimate_beta = function(evidence_type,sample_values){
     cilevel_est = sample_values[3]/100
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
-    values = get.beta.par(p=c(p1,p2),q=c(cilow_est,cihigh_est),show.output=F,plot=F)
-    names(values) = NULL
-    a_est = values[1]
-    b_est = values[2]
+    f <- function(a, x, p) {
+      logit.prob <-  log(p/(1-p))
+      fit<-pbeta(x,shape1=exp(a)[1],shape2=exp(a)[2])
+      logit.fit <- log(fit/(1-fit))
+      return(sum((logit.fit-logit.prob)^2))
+    }
+    out = optim(par=exp(c(1,1)),f,x=c(cilow_est,cihigh_est),p=c(p1,p2),method='BFGS')
+    a_est = exp(out$par)[1]
+    b_est = exp(out$par)[2]
   }
+  
   mean_est = a_est/(a_est+b_est)
   sd_est = sqrt((a_est*b_est)/((a_est+b_est+1)*(a_est+b_est)^2))
   return(c(`Shape (alpha)`=a_est,`Shape (beta)` = b_est,
@@ -188,7 +231,8 @@ check_dist_params <- function(dist_name,evidence_type,sample_vals){
          'gamma'= check_gamma_params(evidence_type,sample_vals),
          'beta'= check_beta_params(evidence_type,sample_vals),
          'unif'=check_uniform_params(sample_vals),
-         'lnorm' = check_lognormal_params(evidence_type,sample_vals)
+         'lnorm' = check_lognormal_params(evidence_type,sample_vals),
+         'weib' = check_weibull_params(evidence_type,sample_vals)
   )
 }
 
@@ -205,7 +249,8 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
            'gamma'= check_gamma_params(evidence_type,sample_vals),
            'beta'= check_beta_params(evidence_type,sample_vals),
            'unif'=check_uniform_params(sample_vals),
-           'lnorm' = check_lognormal_params(evidence_type,sample_vals))}
+           'lnorm' = check_lognormal_params(evidence_type,sample_vals),
+           'weib' = check_weibull_params(evidence_type,sample_vals))}
 }
 
 
@@ -215,7 +260,8 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
          'gamma' = estimate_gamma(evidence_type,sample_dat),
          'beta' = estimate_beta(evidence_type,sample_dat),
          'unif' = estimate_uniform(sample_dat),
-         'lnorm' = estimate_lognormal(evidence_type,sample_dat)
+         'lnorm' = estimate_lognormal(evidence_type,sample_dat),
+         'weib' = estimate_weibull(evidence_type,sample_dat)
   )
 }
 
@@ -284,7 +330,10 @@ renderDistIn <- function(dist_obj){
          
          "lnorm" = selectInput(inputId = 'parms_in',label='Form of evidence',
                                choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
-                               selected='mean_se')
+                               selected='mean_se'),
+         "weib" = selectInput(inputId = 'parms_in',label='Form of evidence',
+                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                              selected='mean_se')
   )
 }
 
@@ -327,7 +376,8 @@ nice_names <- function(dist_obj_name,param_est){
          'gamma' = paste0('Gamma(',round(param_est[1],2),',',round(param_est[2],2),')'),
          'beta' = paste0('Beta(',round(param_est[1],2),',',round(param_est[2],2),')'),
          'unif' = paste0('Uniform(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'lnorm' = paste0('Log-normal(',round(param_est[1],2),',',round(param_est[2],2),')')
+         'lnorm' = paste0('Log-normal(',round(param_est[1],2),',',round(param_est[2],2),')'),
+         'weib' = paste0('Weibull(',round(param_est[1],2),',',round(param_est[2],2),')')
   )
 }
 
@@ -374,7 +424,8 @@ calc_dens <- function(dist_family,parm_est,dist_name){
          'gamma' = geom_function(fun = dgamma,args=list(shape=parm_est[1],scale=parm_est[2]),size=1.25,aes(colour=dist_name)),
          'beta' = geom_function(fun = dbeta,args=list(shape1=parm_est[1],shape2=parm_est[2]),size=1.25,aes(colour=dist_name)),
          'unif' = geom_function(fun = dunif,args=list(min=parm_est[1],max=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'lnorm' = geom_function(fun = dlnorm,args=list(meanlog=parm_est[1],sdlog=parm_est[2]),size=1.25),aes(colour=dist_name))
+         'lnorm' = geom_function(fun = dlnorm,args=list(meanlog=parm_est[1],sdlog=parm_est[2]),size=1.25,aes(colour=dist_name)),
+         'weib' = geom_function(fun = dweibull,args=list(shape=parm_est[1],scale=parm_est[2]),size=1.25,aes(colour=dist_name)))
 }
 
 
@@ -384,7 +435,8 @@ calc_xlim <- function(dist_family,parm_est){
          'gamma' = qgamma(p=c(0.0001,0.9999),shape=parm_est[1],scale=parm_est[2]),
          'beta' = qbeta(p=c(0.0001,0.9999),shape1=parm_est[1],shape2=parm_est[2]),
          'unif' = qunif(p=c(0.0001,0.9999),min=parm_est[1],max=parm_est[2]),
-         'lnorm' = qlnorm(p=c(0.0001,0.9999),meanlog=parm_est[1],sdlog=parm_est[2]))
+         'lnorm' = qlnorm(p=c(0.0001,0.9999),meanlog=parm_est[1],sdlog=parm_est[2]),
+         'weib' = qweibull(p=c(0.0001,0.9999),shape=parm_est[1],scale=parm_est[2]))
 }
 
 sect_properties <- prop_section(
