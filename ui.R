@@ -44,7 +44,9 @@ shinyUI(fluidPage(
 
                 )),
                 column(12,style='padding-top:15px;'),
-                textOutput("input_error")
+                textOutput("input_error"),
+                column(12,style='padding-top:15px;'),
+                textOutput("no_soln")
       ),
       
       wellPanel(h5(strong('Step 4: Customise output')),
@@ -57,8 +59,8 @@ shinyUI(fluidPage(
                 h5(strong('iii. Summary table')),
                 h5("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
                 column(10,checkboxGroupInput(inputId = 'summary_stats',label=NULL,
-                                             choices=c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),
-                                             selected = c('Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'),inline=F)),
+                                             choices=c('Form of evidence','Distribution','Mean (SD)','Mean (95% CI)','Median (Q1 to Q3)'),
+                                             selected = c('Form of evidence','Distribution','Mean (SD)','Mean (95% CI)','Median (Q1 to Q3)'),inline=F)),
                 
                 column(12,checkboxGroupInput(inputId = 'table_order',label='Arrange rows by:',choices = c('Description','Distribution family'),selected=NULL,inline=TRUE)),
                 fluidRow(column(6,textInput(inputId = 'tab_fname',label='Table name',value='table')),

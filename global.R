@@ -20,13 +20,7 @@ estimate_normal = function(evidence_type,sample_values){
     mu_est = (cilow_est*qnorm(1-p1)-cihigh_est*qnorm(p1))/(qnorm(1-p1)-qnorm(p1))
     sigma_est = (cihigh_est-cilow_est)/(qnorm(1-p1)-qnorm(p1))
   }
-  #add percentiles
-  return(c(Mean=mu_est,`Standard deviation`=sigma_est,
-           p2.5 = qnorm(0.025,mu_est,sigma_est),
-           p25 = qnorm(0.25,mu_est,sigma_est),
-           p50 = qnorm(0.5,mu_est,sigma_est),
-           p75 = qnorm(0.75,mu_est,sigma_est),
-           p97.5 = qnorm(0.975,mu_est,sigma_est)))
+  return(c(mu_est,sigma_est))
 }
 
 check_normal_params <- function(evidence_type,sample_vals){
@@ -35,6 +29,25 @@ check_normal_params <- function(evidence_type,sample_vals){
   else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Normal distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
+
+summary_stats_normal = function(dist_label,evidence_type,param_est){
+  mu_est = param_est[1];sigma_est = param_est[2]
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("norm",param_est),
+  "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+  "Mean (95% CI)" = paste0(round(param_est[1],2),' (',
+                               round(qnorm(0.025,mu_est,sigma_est),2),' to ',
+                               round(qnorm(0.975,mu_est,sigma_est),2),')'), 
+  
+  "Median (Q1 to Q3)" = paste0(round(qnorm(0.5,mu_est,sigma_est),2),' (',
+                               round(qnorm(0.25,mu_est,sigma_est),2),' to ',
+                               round(qnorm(0.75,mu_est,sigma_est),2),')'),check.names=F)
+  return(out)
+}
+
+
+#'Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'
 
 #gamma distribution
 estimate_gamma = function(evidence_type,sample_values){
@@ -56,15 +69,28 @@ estimate_gamma = function(evidence_type,sample_values){
     scale_est = 0.5*(cilow_est/qgamma(p1,shape=shape_est,scale=1) + cihigh_est/qgamma(p2,shape=shape_est,scale=1))
   }
   
-  return(c(Shape=shape_est,Scale=scale_est,
-           Mean=shape_est*scale_est,
-           `Standard deviation`=sqrt(shape_est)*scale_est,
-           p2.5= qgamma(0.025,shape=shape_est,scale=scale_est),
-           p25 = qgamma(0.25,shape=shape_est,scale=scale_est),
-           p50 = qgamma(0.5,shape=shape_est,scale=scale_est),
-           p75 = qgamma(0.75,shape=shape_est,scale=scale_est),
-           p97.5 = qgamma(0.975,shape=shape_est,scale=scale_est)))
+  return(c(shape_est,scale_est))
 }
+
+summary_stats_gamma = function(dist_label,evidence_type,param_est){
+  shape_est=param_est[1];scale=param_est[2]
+  mu_est = shape_est[1]*scale_est[2]
+  sigma_est = sqrt(shape_est[1])*scale_est[2]
+  
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("gamma",param_est), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                                                              round(qgamma(0.025,shape=shape_est[1],scale=scale_est[2]),2),' to ',
+                                                              round(qgamma(0.975,shape=shape_est[1],scale=scale_est[2]),2),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est[1],scale=scale_est[2]),2),' (',
+                                                 round(qgamma(0.25,shape=shape_est[1],scale=scale_est[2]),2),' to ',
+                                                 round(qgamma(0.75,shape=shape_est[1],scale=scale_est[2]),2),')'),check.names=F)
+  return(out)
+}
+
 
 check_gamma_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Gamma distribution): Mean and uncertainty estimates must be greater than 0")}
@@ -73,6 +99,8 @@ check_gamma_params <- function(evidence_type,sample_vals){
   else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
+
+
 
 #weibull distribution
 estimate_weibull = function(evidence_type,sample_values){
@@ -94,15 +122,29 @@ estimate_weibull = function(evidence_type,sample_values){
     #take average value for scale_est to account for rounding errors in inputs
     scale_est = 0.5*(cilow_est/((-log(1-p1))^(1/shape_est)) + cihigh_est/((-log(1-p2))^(1/shape_est)))
   }
-  return(c(Shape=shape_est,Scale=scale_est,
-           Mean=scale_est*gamma(1+1/shape_est),
-           `Standard deviation`=scale_est*sqrt(gamma(1+2/shape_est)-(gamma(1+1/shape_est))^2),
-           p2.5= qweibull(0.025,shape=shape_est,scale=scale_est),
-           p25 = qweibull(0.25,shape=shape_est,scale=scale_est),
-           p50 = qweibull(0.5,shape=shape_est,scale=scale_est),
-           p75 = qweibull(0.75,shape=shape_est,scale=scale_est),
-           p97.5 = qweibull(0.975,shape=shape_est,scale=scale_est)))
+  return(c(shape_est,scale_est))
+    
 }
+
+summary_stats_weibull = function(dist_label,evidence_type,param_est){
+  shape_est = param_est[1];scale_est = param_est[2]
+  mu_est = scale_est*gamma(1+1/shape_est)
+  sigma_est = sqrt(param_est[1])*param_est[2]
+  
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("weib",param_est), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                                                              round(qgamma(0.025,shape=shape_est,scale=scale_est),2),' to ',
+                                                              round(qgamma(0.975,shape=shape_est,scale=scale_est),2),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est,scale=scale_est),2),' (',
+                                                 round(qgamma(0.25,shape=shape_est,scale=scale_est),2),' to ',
+                                                 round(qgamma(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
+  return(out)
+}
+
 
 check_weibull_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Weibull distribution): Mean and uncertainty estimates must be greater than 0")}
@@ -141,17 +183,32 @@ estimate_beta = function(evidence_type,sample_values){
     a_est = exp(out$par)[1]
     b_est = exp(out$par)[2]
   }
+
   
-  mean_est = a_est/(a_est+b_est)
-  sd_est = sqrt((a_est*b_est)/((a_est+b_est+1)*(a_est+b_est)^2))
-  return(c(`Shape (alpha)`=a_est,`Shape (beta)` = b_est,
-           Mean = mean_est, `Standard deviation` = sd_est,
-           p2.5= qbeta(0.025,shape1=a_est,shape2=b_est),
-           p25 = qbeta(0.25,shape1=a_est,shape2=b_est),
-           p50 = qbeta(0.5,shape1=a_est,shape2=b_est),
-           p75 = qbeta(0.75,shape1=a_est,shape2=b_est),
-           p97.5 = qbeta(0.975,shape1=a_est,shape2=b_est)))
+  return(c(a_est,b_est))
+
 }  
+
+
+summary_stats_beta = function(dist_label,evidence_type,param_est){
+  a_est = param_est[1];b_est = param_est[2]
+  mu_est = a_est/(a_est+b_est)
+  sigma_est = sqrt((a_est*b_est)/((a_est+b_est+1)*(a_est+b_est)^2))
+  
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("beta",param_est), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                                                              round(qbeta(0.025,shape1=a_est,shape2=b_est),2),' to ',
+                                                              round(qbeta(0.975,shape1=a_est,shape2=b_est),2),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(round(qbeta(0.5,shape1=a_est,shape2=b_est),2),' (',
+                                                 round(qbeta(0.25,shape1=a_est,shape2=b_est),2),' to ',
+                                                 round(qbeta(0.75,shape1=a_est,shape2=b_est),2),')'),check.names=F)
+  return(out)
+}
+
 
 
 #testing needed
@@ -168,16 +225,28 @@ check_beta_params <- function(evidence_type,sample_vals){
 estimate_uniform = function(sample_values){
   a_est = sample_values[1]
   b_est = sample_values[2]
+  return(c(a_est,b_est))
+}
+
+
+summary_stats_uniform = function(dist_label,evidence_type,param_est){
+  a_est = param_est[1];b_est = param_est[2]
   mean_est = 0.5*(a_est+b_est)
-  sd_est = sqrt((1/12)*(b_est-a_est)^2)
-  return(c(Minimum=a_est,Maximum=b_est,
-           Mean = mean_est,
-           `Standard deviation`=sd_est,
-           p2.5= qunif(0.025,min=a_est,max=b_est),
-           p25 = qunif(0.25,min=a_est,max=b_est),
-           p50 = qunif(0.5,min=a_est,max=b_est),
-           p75 = qunif(0.75,min=a_est,max=b_est),
-           p97.5 = qunif(0.975,min=a_est,max=b_est)))
+  sigma_est = sqrt((1/12)*(b_est-a_est)^2)
+
+  
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("unif",param_est), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                                                              round(qunif(0.025,min=a_est,max=b_est),2),' to ',
+                                                              round(qunif(0.975,min=a_est,max=b_est),2),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(round(qunif(0.5,min=a_est,max=b_est),2),' (',
+                                                 round(qunif(0.25,min=a_est,max=b_est),2),' to ',
+                                                 round(qunif(0.75,min=a_est,max=b_est),2),')'),check.names=F)
+  return(out)
 }
 
 check_uniform_params <- function(sample_vals){
@@ -202,14 +271,32 @@ estimate_lognormal = function(evidence_type,sample_values){
     mu_est = (cilow_est*qnorm(1-p1)-cihigh_est*qnorm(p1))/(qnorm(1-p1)-qnorm(p1))
     sigma_est = (cihigh_est-cilow_est)/(qnorm(1-p1)-qnorm(p1))
   }
-  return(c(`Mean (log)`=mu_est,`Standard deviation (log)`=sigma_est,
-           Mean = exp(mu_est+0.5*sigma_est^2),`Standard deviation`=sqrt((exp(sigma_est^2)-1)*exp(2*mu_est+sigma_est^2)),
-           p2.5= stats::qlnorm(0.025,meanlog=mu_est,sdlog=sigma_est),
-           p25 = stats::qlnorm(0.25,meanlog=mu_est,sdlog=sigma_est),
-           p50 = stats::qlnorm(0.5,meanlog=mu_est,sdlog=sigma_est),
-           p75 = stats::qlnorm(0.75,meanlog=mu_est,sdlog=sigma_est),
-           p97.5 = stats::qlnorm(0.975,meanlog=mu_est,sdlog=sigma_est)))
+  return(c(mu_est,sigma_est))
+
 }
+
+
+summary_stats_lognormal = function(dist_label,evidence_type,param_est){
+  log_mu_est = param_est[1];log_sigma_est = param_est[2]
+  
+  mu_est = exp(param_est[1]+0.5*param_est[2]^2)
+  sigma_est = sqrt((exp(param_est[2]^2)-1)*exp(2*param_est[1]+param_est[2]^2))
+  
+  
+  out <- data.frame("Description"=dist_label, #input[['dist_label']]
+                    "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
+                    "Distribution" = nice_names("lnorm",param_est),
+                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
+                    "Mean (95% CI)" = paste0(round(param_est[1],2),' (',
+                                                              round(qlnorm(0.025,log_mu_est,log_sigma_est),2),' to ',
+                                                              round(qlnorm(0.975,log_mu_est,log_sigma_est),2),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(round(qlnorm(0.5,log_mu_est,log_sigma_est),2),' (',
+                                                 round(qlnorm(0.25,log_mu_est,log_sigma_est),2),' to ',
+                                                 round(qlnorm(0.75,log_mu_est,log_sigma_est),2),')'),check.names=F)
+  return(out)
+}
+
 
 check_lognormal_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Lognormal distribution): Mean and uncertainty estimates must be greater than 0")}
@@ -241,7 +328,6 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals,param_est){
   dist_label = dist_obj$dist_label
   dist_name = dist_obj$dist_name
   
-  text_no_soln <- "No solution found for selected options. Check all inputs in Step 2 or consider using a different distribution family in Step 1"
   if(dist_label==''){"Empty description. Please provide a name for your distrbution in Step 1. Names already stored in the final output table will be overwritten."}
   else if(dist_label!='' & anyNA(sample_vals)==T){"At least one input is empty. Please enter all required values based on the form of evidence selected in Step 2"}
   else if (dist_label!='' & anyNA(sample_vals)==F){
@@ -252,9 +338,7 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals,param_est){
            'unif'=check_uniform_params(sample_vals),
            'lnorm' = check_lognormal_params(evidence_type,sample_vals),
            'weib' = check_weibull_params(evidence_type,sample_vals))}
-  else if (dist_name %in% c('norm','lnorm') & param_est[2]<=0){text_no_soln}
-  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)){text_no_soln}
-  else if (anyNA(param_est)){text_no_soln}
+
 }
 
 
@@ -269,6 +353,12 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
   )
 }
 
+check_parameter_estimates<-function(dist_name,param_est){
+  text_no_soln <- "Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"
+  if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){text_no_soln}
+  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){text_no_soln}
+  else if (anyNA(param_est)){text_no_soln}
+}
 
 # sim_values = function(dist_family,n_samples,param_estimates){
 #   if(is.null(dist_family)||is.null(n_samples))
