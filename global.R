@@ -32,7 +32,7 @@ estimate_normal = function(evidence_type,sample_values){
 check_normal_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & sample_vals[2]<=0){paste("Check distribution inputs (Normal distribution): Uncertainty estimate must be greater than 0")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Normal distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Normal distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Normal distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -70,7 +70,7 @@ check_gamma_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Gamma distribution): Mean and uncertainty estimates must be greater than 0")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Gamma distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Gamma distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -108,7 +108,7 @@ check_weibull_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Weibull distribution): Mean and uncertainty estimates must be greater than 0")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Weibull distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Weibull distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution input (Weibull distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Weibull distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -159,7 +159,7 @@ check_beta_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
   else if (evidence_type=='r_n' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
 }
@@ -215,7 +215,7 @@ check_lognormal_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Lognormal distribution): Mean and uncertainty estimates must be greater than 0")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Lognormal distribution): Lower interval value must be less than upper interval value")}
   else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Lognormal distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<0|sample_vals[3]>100)){paste("Check distribution inputs (Lognormal distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Lognormal distribution): Define confidence level as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -235,11 +235,13 @@ check_dist_params <- function(dist_name,evidence_type,sample_vals){
   )
 }
 
-check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
+
+check_all_inputs <- function(dist_obj,evidence_type,sample_vals,param_est){
   
   dist_label = dist_obj$dist_label
   dist_name = dist_obj$dist_name
   
+  text_no_soln <- "No solution found for selected options. Check all inputs in Step 2 or consider using a different distribution family in Step 1"
   if(dist_label==''){"Empty description. Please provide a name for your distrbution in Step 1. Names already stored in the final output table will be overwritten."}
   else if(dist_label!='' & anyNA(sample_vals)==T){"At least one input is empty. Please enter all required values based on the form of evidence selected in Step 2"}
   else if (dist_label!='' & anyNA(sample_vals)==F){
@@ -250,6 +252,9 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
            'unif'=check_uniform_params(sample_vals),
            'lnorm' = check_lognormal_params(evidence_type,sample_vals),
            'weib' = check_weibull_params(evidence_type,sample_vals))}
+  else if (dist_name %in% c('norm','lnorm') & param_est[2]<=0){text_no_soln}
+  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)){text_no_soln}
+  else if (anyNA(param_est)){text_no_soln}
 }
 
 
@@ -263,7 +268,6 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
          'weib' = estimate_weibull(evidence_type,sample_dat)
   )
 }
-
 
 
 # sim_values = function(dist_family,n_samples,param_estimates){
@@ -323,7 +327,7 @@ renderDistIn <- function(dist_obj){
          
          "beta" = selectInput(inputId = 'parms_in',label='Form of evidence',
                               choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci','Number of events, sample size' = 'r_n'),
-                              selected='r_n'),
+                              selected='mean_se'),
          
          "unif" = selectInput(inputId = 'parms_in',label='Form of evidence',choices = c('Min/Max'='min_max'),selected='min_max'),
          

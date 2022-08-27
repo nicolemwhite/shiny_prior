@@ -21,7 +21,7 @@ shinyServer(function(input, output,session) {
   }
   #theoretical moments based on parameters estimates
   dist_summary = function(){
-    validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))
+    validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info(),parameter_estimates()[1:2]))
     
     
     #table
