@@ -64,7 +64,8 @@ estimate_gamma = function(evidence_type,sample_values){
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
     f <- function(a){(qgamma(p2,shape=exp(a),scale=1)/qgamma(p1,shape=exp(a),scale=1)) - cihigh_est/cilow_est}
-    out = uniroot(f,interval=c(-1,1),extendInt = "yes",check.conv=T) 
+    
+    out = uniroot(f,interval=c(-1,1),extendInt = "yes",check.conv=T)
     shape_est = exp(out$root)
     scale_est = 0.5*(cilow_est/qgamma(p1,shape=shape_est,scale=1) + cihigh_est/qgamma(p2,shape=shape_est,scale=1))
   }
@@ -73,9 +74,9 @@ estimate_gamma = function(evidence_type,sample_values){
 }
 
 summary_stats_gamma = function(dist_label,evidence_type,param_est){
-  shape_est=param_est[1];scale=param_est[2]
-  mu_est = shape_est[1]*scale_est[2]
-  sigma_est = sqrt(shape_est[1])*scale_est[2]
+  shape_est=param_est[1];scale_est=param_est[2]
+  mu_est = shape_est*scale_est
+  sigma_est = sqrt(shape_est)*scale_est
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
@@ -129,7 +130,7 @@ estimate_weibull = function(evidence_type,sample_values){
 summary_stats_weibull = function(dist_label,evidence_type,param_est){
   shape_est = param_est[1];scale_est = param_est[2]
   mu_est = scale_est*gamma(1+1/shape_est)
-  sigma_est = sqrt(param_est[1])*param_est[2]
+  sigma_est = sqrt(shape_est)*scale_est
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
@@ -179,7 +180,7 @@ estimate_beta = function(evidence_type,sample_values){
       logit.fit <- log(fit/(1-fit))
       return(sum((logit.fit-logit.prob)^2))
     }
-    out = optim(par=exp(c(1,1)),f,x=c(cilow_est,cihigh_est),p=c(p1,p2),method='BFGS')
+    out = optim(par=exp(c(0.1,0.1)),f,x=c(cilow_est,cihigh_est),p=c(p1,p2),method='BFGS')
     a_est = exp(out$par)[1]
     b_est = exp(out$par)[2]
   }
@@ -213,9 +214,9 @@ summary_stats_beta = function(dist_label,evidence_type,param_est){
 
 #testing needed
 check_beta_params <- function(evidence_type,sample_vals){
-  if (evidence_type=='mean_se' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
+  if (evidence_type=='mean_se' & (any(sample_vals[1:2]<=0)|any(sample_vals[1:2]>=1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
   else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (!(sample_vals[1]>0 & sample_vals[2]<1)|!(sample_vals[2]>0 & sample_vals[2]<1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
+  else if (evidence_type=='ci' & (any(sample_vals[1:2]<=0)|any(sample_vals[1:2]>=1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
   else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
   else if (evidence_type=='r_n' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
@@ -231,7 +232,7 @@ estimate_uniform = function(sample_values){
 
 summary_stats_uniform = function(dist_label,evidence_type,param_est){
   a_est = param_est[1];b_est = param_est[2]
-  mean_est = 0.5*(a_est+b_est)
+  mu_est = 0.5*(a_est+b_est)
   sigma_est = sqrt((1/12)*(b_est-a_est)^2)
 
   
@@ -323,7 +324,7 @@ check_dist_params <- function(dist_name,evidence_type,sample_vals){
 }
 
 
-check_all_inputs <- function(dist_obj,evidence_type,sample_vals,param_est){
+check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
   
   dist_label = dist_obj$dist_label
   dist_name = dist_obj$dist_name
@@ -338,6 +339,7 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals,param_est){
            'unif'=check_uniform_params(sample_vals),
            'lnorm' = check_lognormal_params(evidence_type,sample_vals),
            'weib' = check_weibull_params(evidence_type,sample_vals))}
+
 
 }
 
@@ -354,10 +356,10 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
 }
 
 check_parameter_estimates<-function(dist_name,param_est){
-  text_no_soln <- "Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"
-  if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){text_no_soln}
-  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){text_no_soln}
-  else if (anyNA(param_est)){text_no_soln}
+  if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
+  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
+  else if (anyNA(param_est)){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
+  else{NULL}
 }
 
 # sim_values = function(dist_family,n_samples,param_estimates){

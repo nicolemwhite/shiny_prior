@@ -14,50 +14,45 @@ shinyServer(function(input, output,session) {
   
   
   #estimate parameters based on data provided and chosen distribution
-  parameter_estimates = function(){#reactive({
-    #estimate distribution based on evidence inputted
-    estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
-    #}) #end of reactive function
-  }
+  # parameter_estimates = function(){#reactive({
+  #   #estimate distribution based on evidence inputted
+  #   estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
+  #   #}) #end of reactive function
+  # }
   #theoretical moments based on parameters estimates
   dist_summary = function(){
-    validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info(),parameter_estimates()))
+    validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))
+    
+    parameter_estimates = estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
     
     
-    #table
-    validate(check_parameter_estimates(input[['dist_family']],parameter_estimates()))
+    no_soln<-check_parameter_estimates(dist_info()$dist_name,parameter_estimates)
     
+    #only proceed if solution for parameter estimates is found
+    if(is.null(no_soln)){
+      #table
     dat = switch(input[['dist_family']],
-                 'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates()),
-                 'gamma'= summary_stats_gamma(input[['dist_label']],input[['parms_in']],parameter_estimates()),
-                 'beta'= summary_stats_beta(input[['dist_label']],input[['parms_in']],parameter_estimates()),
-                 'unif'= summary_stats_uniform(input[['dist_label']],input[['parms_in']],parameter_estimates()),
-                 'lnorm' = summary_stats_lognormal(input[['dist_label']],input[['parms_in']],parameter_estimates()),
-                 'weib' = summary_stats_weibull(input[['dist_label']],input[['parms_in']],parameter_estimates())
+                 'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates),
+                 'gamma'= summary_stats_gamma(input[['dist_label']],input[['parms_in']],parameter_estimates),
+                 'beta'= summary_stats_beta(input[['dist_label']],input[['parms_in']],parameter_estimates),
+                 'unif'= summary_stats_uniform(input[['dist_label']],input[['parms_in']],parameter_estimates),
+                 'lnorm' = summary_stats_lognormal(input[['dist_label']],input[['parms_in']],parameter_estimates),
+                 'weib' = summary_stats_weibull(input[['dist_label']],input[['parms_in']],parameter_estimates)
                  )                 
     
-    
-    # dat = data.frame("Description" = input[['dist_label']],
-    #                  "Form of evidence" = nice_names_evidence(input[['parms_in']]),
-    #                  "Distribution" = nice_names(input[['dist_family']],parameter_estimates()[1:2]),
-    #                  "Mean (95% uncertainty interval)" = paste0(round(parameter_estimates()['Mean'],2),' (',round(parameter_estimates()['p2.5'],2),' to ',round(parameter_estimates()['p97.5'],2),')'),
-    #                  "Median (Q1 to Q3)" = paste0(round(parameter_estimates()['p50'],2),' (',round(parameter_estimates()['p25'],2),' to ',round(parameter_estimates()['p75'],2),')'),check.names=F)
-    # 
-    #figure
+     #figure
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
-    #legend_posn = legend_positions[[input$legend]]
-    
-    return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates(),table_output = dat)) 
+    }
+    return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates,table_output = dat)) 
   }
   
-  #any_missing = eventReactive(input$go,({validate(check_missing_inputs(estimate_info()))}))
   bad_dist_params = eventReactive(input$go,({validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))}))
-  flag_no_soln = eventReactive(input$go,({validate(check_parameter_estimates(dist_info()$dist_name,parameter_estimates()
-  ))}))
-                                                                     #   estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())))}))
-  
-  
+  flag_no_soln = eventReactive(input$go,({validate(check_parameter_estimates(dist_info()$dist_name,
+                                                                             estimate_dist_parameters(dist_name=dist_info()$dist_name,
+                                                                                                      evidence_type= evidence_info()$evidence_type,
+                                                                                                      sample_dat=estimate_info())))}))
+
   #Outputs
   generate_outputs = eventReactive(input$go,({dist_summary()}))
   
@@ -120,8 +115,6 @@ shinyServer(function(input, output,session) {
       ftab <- ftab %>% arrange(across((row_order_vars))) %>% select(-'Distribution family')
       }
     }
-    
-        
     ftab 
   }
   
