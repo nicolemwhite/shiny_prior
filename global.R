@@ -130,7 +130,10 @@ estimate_weibull = function(evidence_type,sample_values){
 summary_stats_weibull = function(dist_label,evidence_type,param_est){
   shape_est = param_est[1];scale_est = param_est[2]
   mu_est = scale_est*gamma(1+1/shape_est)
-  sigma_est = sqrt(shape_est)*scale_est
+  
+  sigma_est = sqrt((scale_est^2)*(gamma(1+2/shape_est)-(gamma(1+1/shape_est))^2))
+  
+  #sigma_est = sqrt(shape_est)*scale_est #check this
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
