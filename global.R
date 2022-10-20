@@ -83,12 +83,12 @@ summary_stats_gamma = function(dist_label,evidence_type,param_est){
                     "Distribution" = nice_names("gamma",param_est), #input[['dist_family']];parameter_es
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
                     "Mean (95% CI)" = paste0(round(mu_est,2),' (',
-                                                              round(qgamma(0.025,shape=shape_est[1],scale=scale_est[2]),2),' to ',
-                                                              round(qgamma(0.975,shape=shape_est[1],scale=scale_est[2]),2),')'), 
+                                                              round(qgamma(0.025,shape=shape_est,scale=scale_est),2),' to ',
+                                                              round(qgamma(0.975,shape=shape_est,scale=scale_est),2),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est[1],scale=scale_est[2]),2),' (',
-                                                 round(qgamma(0.25,shape=shape_est[1],scale=scale_est[2]),2),' to ',
-                                                 round(qgamma(0.75,shape=shape_est[1],scale=scale_est[2]),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est,scale=scale_est),2),' (',
+                                                 round(qgamma(0.25,shape=shape_est,scale=scale_est),2),' to ',
+                                                 round(qgamma(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
   return(out)
 }
 
