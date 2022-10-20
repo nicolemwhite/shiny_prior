@@ -51,12 +51,7 @@ shinyUI(fluidPage(
       
       wellPanel(h5(strong('Step 4: Customise output')),
                 column(12,style='padding-top:5px;'),
-                h5(strong('i. Remove results from saved output')),
-                h5("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
-                fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T)),
-                         column(4,actionButton(inputId = "remove_result",label="Remove",style = 'margin-top:25px'))),
-                column(12,style='padding-top:5px;'),
-                h5(strong('iii. Summary table')),
+                h5(strong('Summary table')),
                 h5("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
                 column(10,checkboxGroupInput(inputId = 'summary_stats',label=NULL,
                                              choices=c('Form of evidence','Distribution','Mean (SD)','Mean (95% CI)','Median (Q1 to Q3)'),
@@ -67,7 +62,7 @@ shinyUI(fluidPage(
                   column(6,downloadButton("downloadTable", "Download table"),style = 'margin-top:25px')),
                 fluidRow(column(12,style='padding-bottom:20px;')),
                 
-                h5(strong('ii. Visualisation')),
+                h5(strong('Visualisation')),
                 h5("Customise the appearance of the density plot here. Multiple distributions can be added and removed in the 'Select distribution(s)' box below. When done, click 'Download Figure' to download the customised visualation in the selected format."),
                 fluidRow(column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
 
@@ -88,7 +83,12 @@ shinyUI(fluidPage(
                   column(3,numericInput(inputId = "fwidth",label = "Width (cm)",min = 8,max = 22,step = 1,value = 15))),
                 fluidRow(column(6,textInput(inputId = 'fig_fname',label='Figure name',value='figure')),
                          column(6,downloadButton("downloadFigure", "Download Figure"),style = 'margin-top:25px')),
-                fluidRow(column(12,style='padding-bottom:20px;'))
+                fluidRow(column(12,style='padding-bottom:20px;')),
+                column(12,style='padding-top:5px;'),
+                h5(strong('Remove results from saved output')),
+                h5("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
+                fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T)),
+                         column(4,actionButton(inputId = "remove_result",label="Remove",style = 'margin-top:25px')))
       )
     ), #end of sidebarPanel
     
