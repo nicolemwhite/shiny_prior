@@ -14,22 +14,22 @@ shinyServer(function(input, output,session) {
   
   
   #estimate parameters based on data provided and chosen distribution
-  # parameter_estimates = function(){#reactive({
-  #   #estimate distribution based on evidence inputted
-  #   estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
-  #   #}) #end of reactive function
-  # }
+  parameter_estimates = function(){#reactive({
+    #estimate distribution based on evidence inputted
+    estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
+    #}) #end of reactive function
+  }
   #theoretical moments based on parameters estimates
   dist_summary = function(){
     validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))
-    
+
     parameter_estimates = estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
-    
-    
-    no_soln<-check_parameter_estimates(dist_info()$dist_name,parameter_estimates)
-    
+
+
+    #no_soln<-check_parameter_estimates(dist_info()$dist_name,parameter_estimates)
+
     #only proceed if solution for parameter estimates is found
-    if(is.null(no_soln)){
+    #if(is.null(no_soln)){
       #table
     dat = switch(input[['dist_family']],
                  'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates),
@@ -38,27 +38,22 @@ shinyServer(function(input, output,session) {
                  'unif'= summary_stats_uniform(input[['dist_label']],input[['parms_in']],parameter_estimates),
                  'lnorm' = summary_stats_lognormal(input[['dist_label']],input[['parms_in']],parameter_estimates),
                  'weib' = summary_stats_weibull(input[['dist_label']],input[['parms_in']],parameter_estimates)
-                 )                 
-    
+                 )
+
      #figure
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
-    }
-    return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates,table_output = dat)) 
+    #}
+    return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates,table_output = dat))
   }
-  
-  bad_dist_params = eventReactive(input$go,({validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))}))
-  flag_no_soln = eventReactive(input$go,({validate(check_parameter_estimates(dist_info()$dist_name,
-                                                                             estimate_dist_parameters(dist_name=dist_info()$dist_name,
-                                                                                                      evidence_type= evidence_info()$evidence_type,
-                                                                                                      sample_dat=estimate_info())))}))
+
 
   #Outputs
   generate_outputs = eventReactive(input$go,({dist_summary()}))
   
   
   #Saved output
-  results <- reactiveValues(output_name = NULL,output_family = NULL,param_est = NULL,table_output = NULL)
+  results <- reactiveValues(output_name = NULL,output_family = NULL,param_est = NULL,table_output = NULL,bad_dist_params=NULL,flag_no_soln=NULL)
 
   
   plot_colours <- reactive({
@@ -118,6 +113,15 @@ shinyServer(function(input, output,session) {
     ftab 
   }
   
+  print_errors <- function(){
+    bad_dist_params = generate_outputs()[['bad_dist_params']]
+    flag_no_soln = generate_outputs()[['flag_no_soln']]
+    
+    return(c(bad_dist_params,bad_dist_params))
+    
+    
+  }
+  
   observeEvent(input$go,if(input$dist_label!=''){
     add_results <- generate_outputs()
     for(x in names(results)){results[[x]][[input$dist_label]] <<- add_results[[x]]}
@@ -140,8 +144,7 @@ shinyServer(function(input, output,session) {
     }
   })
 
-  output$input_error <- renderText({bad_dist_params()})
-  output$no_soln <- renderText({flag_no_soln()})
+  output$input_error <- renderText({print_errors()})
   output$hist = renderPlot({create_density_plot()})
   output$param_est = renderTable({create_table()})
   

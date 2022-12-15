@@ -36,7 +36,7 @@ summary_stats_normal = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("norm",param_est),
   "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-  "Mean (95% CI)" = paste0(round(param_est[1],2),' (',
+  "Mean (95% Interval)" = paste0(round(param_est[1],2),' (',
                                round(qnorm(0.025,mu_est,sigma_est),2),' to ',
                                round(qnorm(0.975,mu_est,sigma_est),2),')'), 
   
@@ -82,7 +82,7 @@ summary_stats_gamma = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("gamma",param_est), #input[['dist_family']];parameter_es
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
                                                               round(qgamma(0.025,shape=shape_est,scale=scale_est),2),' to ',
                                                               round(qgamma(0.975,shape=shape_est,scale=scale_est),2),')'), 
                     
@@ -139,13 +139,13 @@ summary_stats_weibull = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("weib",param_est), #input[['dist_family']];parameter_es
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
-                                                              round(qgamma(0.025,shape=shape_est,scale=scale_est),2),' to ',
-                                                              round(qgamma(0.975,shape=shape_est,scale=scale_est),2),')'), 
+                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
+                                                              round(qweibull(0.025,shape=shape_est,scale=scale_est),2),' to ',
+                                                              round(qweibull(0.975,shape=shape_est,scale=scale_est),2),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est,scale=scale_est),2),' (',
-                                                 round(qgamma(0.25,shape=shape_est,scale=scale_est),2),' to ',
-                                                 round(qgamma(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(round(qweibull(0.5,shape=shape_est,scale=scale_est),2),' (',
+                                                 round(qweibull(0.25,shape=shape_est,scale=scale_est),2),' to ',
+                                                 round(qweibull(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
   return(out)
 }
 
@@ -183,7 +183,7 @@ estimate_beta = function(evidence_type,sample_values){
       logit.fit <- log(fit/(1-fit))
       return(sum((logit.fit-logit.prob)^2))
     }
-    out = optim(par=exp(c(0.1,0.1)),f,x=c(cilow_est,cihigh_est),p=c(p1,p2),method='BFGS')
+    out = try(optim(par=exp(c(0.1,0.1)),f,x=c(cilow_est,cihigh_est),p=c(p1,p2),method='BFGS'),silent=T)
     a_est = exp(out$par)[1]
     b_est = exp(out$par)[2]
   }
@@ -203,7 +203,7 @@ summary_stats_beta = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("beta",param_est), #input[['dist_family']];parameter_es
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
                                                               round(qbeta(0.025,shape1=a_est,shape2=b_est),2),' to ',
                                                               round(qbeta(0.975,shape1=a_est,shape2=b_est),2),')'), 
                     
@@ -243,7 +243,7 @@ summary_stats_uniform = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("unif",param_est), #input[['dist_family']];parameter_es
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% CI)" = paste0(round(mu_est,2),' (',
+                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
                                                               round(qunif(0.025,min=a_est,max=b_est),2),' to ',
                                                               round(qunif(0.975,min=a_est,max=b_est),2),')'), 
                     
@@ -291,7 +291,7 @@ summary_stats_lognormal = function(dist_label,evidence_type,param_est){
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("lnorm",param_est),
                     "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% CI)" = paste0(round(param_est[1],2),' (',
+                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
                                                               round(qlnorm(0.025,log_mu_est,log_sigma_est),2),' to ',
                                                               round(qlnorm(0.975,log_mu_est,log_sigma_est),2),')'), 
                     
@@ -361,7 +361,7 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
 check_parameter_estimates<-function(dist_name,param_est){
   if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
   else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
-  else if (anyNA(param_est)){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
+  else if (anyNA(param_est)|any(is.null(param_est))){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
   else{NULL}
 }
 
