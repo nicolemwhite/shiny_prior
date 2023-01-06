@@ -151,7 +151,7 @@ shinyServer(function(input, output,session) {
   #download outputs
   #table - to do
   fn_download_tab <- function(){
-    ftab <- create_table() %>% flextable() %>% fontsize(size=10,part=c("all")) %>% FitFlextableToPage()
+    ftab <- create_table() %>% flextable() %>% fontsize(size=9,part=c("all")) %>% width(width=2)
     save_as_docx(ftab,path=fn_downloadname_tab())
   }
   # create filename
@@ -206,6 +206,4 @@ shinyServer(function(input, output,session) {
       file.copy(fn_downloadname_fig(), file, overwrite=T)
     }
   )  
-  
-  
 })

@@ -1,118 +1,147 @@
-shinyUI(fluidPage(
-  
-  
-  
-  useShinyjs(),
-  # Application title,
-  titlePanel(("ShinyPrior: A tool for estimating probability distributions using published evidence")),
-  #inlineCSS(".control-label {font-weight: 500}"),
-  
-  # Panels
-  sidebarLayout(
-    sidebarPanel(
-      id = "side-panel",
-      
-      #Distribution name
-      wellPanel(h5(strong('Step 1. Choose a distribution')),
-                h5("Select an appropriate distribution for your outcome of interest below.
-                         Enter a short name for your distribution in the 'Description' box. This name will be used in all application outputs"),
-                #Distribution family
-                fluidRow(column(6, 
-                                selectInput(inputId = "dist_family",
-                                            label = 'Distribution family',
-                                            choices = c("Beta" = paste0("beta"),
-                                                        "Gamma" = paste0("gamma"),
-                                                        "Normal" = paste0("norm"),
-                                                        "Uniform" = paste0("unif"),
-                                                        'Log-normal' = paste0("lnorm"),
-                                                        "Weibull" = paste0("weib")),
-                                            selected = paste0("norm")))),
-                
-                fluidRow(column(6,textInput('dist_label',label='Description',placeholder = 'hello_world')))
-      ), #end of wellPanel
-      
-      
-      #Define distribution inputs
-      renderInputs(),
-      
-      
-      #Run application
-      wellPanel(h5(strong('Step 3: Run Application')),
-                h5("Click on 'Estimate distribution' to generate a tabular summary and density plot. Descriptions aleady stored in the Table will be overwritten."),
-                fluidRow(
-                  column(4,actionButton(inputId = "go",label="Estimate distribution"),
+#header
+header <- dashboardHeader(title = "ShinyPrior: A tool for estimating probability distributions using published evidence",titleWidth = 990,disable=F)
 
-                )),
-                column(12,style='padding-top:15px;'),
-                textOutput("input_error")#,
-                #column(12,style='padding-top:15px;'),
-                #textOutput("no_soln")
-      ),
-      
-      wellPanel(h5(strong('Step 4: Customise output')),
-                column(12,style='padding-top:5px;'),
-                h5(strong('Summary table')),
-                h5("Select which summary statistic(s) to include in the Table. When done, click 'Download Table' to download the customised table as a Word document."),
-                column(10,checkboxGroupInput(inputId = 'summary_stats',label=NULL,
-                                             choices=c('Form of evidence','Distribution','Mean (SD)','Mean (95% Interval)','Median (Q1 to Q3)'),
-                                             selected = c('Form of evidence','Distribution','Mean (SD)','Mean (95% Interval)','Median (Q1 to Q3)'),inline=F)),
-                
-                column(12,checkboxGroupInput(inputId = 'table_order',label='Arrange rows by:',choices = c('Description','Distribution family'),selected=NULL,inline=TRUE)),
-                fluidRow(column(6,textInput(inputId = 'tab_fname',label='Table name',value='table')),
-                  column(6,downloadButton("downloadTable", "Download table"),style = 'margin-top:25px')),
-                fluidRow(column(12,style='padding-bottom:20px;')),
-                
-                h5(strong('Visualisation')),
-                h5("Customise the appearance of the density plot here. Multiple distributions can be added and removed in the 'Select distribution(s)' box below. When done, click 'Download Figure' to download the customised visualation in the selected format."),
-                fluidRow(column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
+#sidebar
+sidebar <- dashboardSidebar(
+  width=600,
+  sidebarMenu(
+    id = 'sidebar',
 
-                fluidRow(
-                  column(6,selectInput('colourscheme',label='Choose colour scheme',choices = names(colourschemes),selected = 'Greyscale')),
-                  column(6, selectInput("theme", label = "Select plot theme", choices = names(themes),selected = 'Minimal'))
-                ),
-                fluidRow(column(6,textInput('xlabtext',label='x-axis label',
-                                            value = 'Value')),
-                         column(6,textInput('ylabtext',label='y-axis label',
-                                            value = 'Density'))),
-                fluidRow(column(6,radioButtons(inputId='legend','Display legend?',choices=names(legend_positions),selected = "Yes",inline=TRUE),style = 'margin-top:10px'),
-                         column(6,uiOutput("legend_title"))),
-                fluidRow(
-                  column(3,selectInput("fformat", "Format",c("png" = "png","tiff" = "tiff","jpeg" = "jpeg"), 'png')),
-                  column(3,selectInput(inputId = "fres",label = "Resolution (dpi)",c("300"=300,"600"=600),selected = "300")),
-                  column(3,numericInput(inputId = "fheight",label = "Height (cm)",min = 8,max = 22,step = 1,value = 10)),
-                  column(3,numericInput(inputId = "fwidth",label = "Width (cm)",min = 8,max = 22,step = 1,value = 15))),
-                fluidRow(column(6,textInput(inputId = 'fig_fname',label='Figure name',value='figure')),
-                         column(6,downloadButton("downloadFigure", "Download Figure"),style = 'margin-top:25px')),
-                fluidRow(column(12,style='padding-bottom:20px;')),
-                column(12,style='padding-top:5px;'),
-                h5(strong('Remove results from saved output')),
-                h5("Any distributions estimated in Step 3 can be permanently deleted here. Select all relevant results in the box below and click 'Remove'"),
-                fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T)),
-                         column(4,actionButton(inputId = "remove_result",label="Remove",style = 'margin-top:25px')))
-      )
-    ), #end of sidebarPanel
-    
-    mainPanel(
-      style="position:fixed;margin-left:32vw;",
-      
-      
-      # Show a plot of the generated distribution and display summary tables for current and stored distribution
-      fluidRow(column(10,align="center",plotOutput("hist"),style = 'margin-left:75px')),
-      tabsetPanel(
-        id = 'output-tabs',
-        tabPanel("Table",column(10,style='padding-bottom:20px;'),column(12, align="center",tableOutput("param_est"))),
-        tabPanel('About ShinyPrior',
-                 p("Summary here with link to preprint/vignette"),
-                 h5(strong("Contacts")),
-                 p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
+    menuItem("Define distribution inputs", tabName = "setup", icon = icon("list"),startExpanded = T),
+    menuItem("Customisation", tabName = "customise", icon = icon("wrench"),startExpanded = F,
+             menuSubItem(text="Visualisation",tabName = 'visualisation',icon=icon('bar-chart')),
+             menuSubItem(text="Summary table",tabName = 'summary_table',icon=icon('table')),
+             menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))
+    ),
+    #menuItem("FAQ", tabName = "faq", icon = icon("question")),
+    menuItem("Further information", tabName = "citation", icon = icon("list-alt")),
+    div(id = 'sidebar_setup',
+        conditionalPanel("input.sidebar === 'setup'",
+                         fluidRow(column(12,
+                                         selectInput(inputId = "dist_family",
+                                                     label = 'Distribution family',
+                                                     choices = c("Beta" = paste0("beta"),
+                                                                 "Gamma" = paste0("gamma"),
+                                                                 "Normal" = paste0("norm"),
+                                                                 "Uniform" = paste0("unif"),
+                                                                 'Log-normal' = paste0("lnorm"),
+                                                                 "Weibull" = paste0("weib")),
+                                                     selected = paste0("norm")))),
+                         
+                         fluidRow(column(6,textInput('dist_label',label='Description',placeholder = 'hello_world'))),
+                         
+                         #step 2
+                         fluidRow(column(6,uiOutput(paste0("ui_dist")))),
+                         fluidRow(column(6,uiOutput(paste0("ui_evidence")))),
+                         
+                         #step 3
+                         fluidRow(column(4,actionButton(inputId = "go",label="Estimate distribution"))),
+                         column(12,style='padding-top:15px;'),
+                         column(10,textOutput("input_error"),style='margin-left:15px')#,
+                         
+        ),
+        conditionalPanel("input.sidebar === 'visualisation'",
+                         (column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
+                         fluidRow(style='margin-left:0px',
+                           column(6,selectInput('colourscheme',label='Choose colour scheme',choices = names(colourschemes),selected = 'Greyscale')),
+                           column(6, selectInput("theme", label = "Select plot theme", choices = names(themes),selected = 'Minimal'))),
+                         fluidRow(style='margin-left:0px',column(6,textInput('xlabtext',label='x-axis label',value = 'Value')),
+                                  column(6,textInput('ylabtext',label='y-axis label',value = 'Density'))),
+                         fluidRow(style='margin-left:0px',column(6,radioButtons(inputId='legend','Display legend?',choices=names(legend_positions),selected = "Yes",inline=TRUE),style = 'margin-top:10px'),column(6,uiOutput("legend_title"))),
+                         fluidRow(style='margin-left:0px',
+                           column(3,selectInput("fformat", "Format",c("png" = "png","tiff" = "tiff","jpeg" = "jpeg"), 'png')),
+                           column(3,selectInput(inputId = "fres",label = "Resolution",c("300 dpi"=300,"600 dpi"=600),selected = "300")),
+                           column(3,numericInput(inputId = "fheight",label = "Height (cm)",min = 8,max = 22,step = 1,value = 10)),
+                           column(3,numericInput(inputId = "fwidth",label = "Width (cm)",min = 8,max = 22,step = 1,value = 15))),
+                         fluidRow(style='margin-left:0px',column(10,textInput(inputId = 'fig_fname',label='Figure name',value='figure'))),
+                         fluidRow(column(6,downloadButton("downloadFigure", "Download Figure",style = 'margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
+        ),
+        conditionalPanel("input.sidebar === 'summary_table'",
+                         column(10,checkboxGroupInput(inputId = 'summary_stats',label="Select summary statistic(s)",choices=c('Form of evidence','Distribution','Mean (SD)','Mean (95% Interval)','Median (Q1 to Q3)'),
+                                                      selected = c('Form of evidence','Distribution','Mean (SD)','Mean (95% Interval)','Median (Q1 to Q3)'),inline=F)),
+                         
+                         column(12,checkboxGroupInput(inputId = 'table_order',label='Arrange rows by:',choices = c('Description','Distribution family'),selected=NULL,inline=TRUE)),
+                         fluidRow(column(10,textInput(inputId = 'tab_fname',label='Table name',value='table'),style='margin-left:15px')),
+                         fluidRow(column(6,downloadButton("downloadTable", "Download table",style='margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
+        ),
+        
+        conditionalPanel("input.sidebar === 'remove_selected'",
+                         fluidRow(column(12,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T),style='margin-left:15px')),
+                         fluidRow(column(6,actionButton(inputId = "remove_result",label="Remove selected distribution(s)",icon=icon("trash"),style='margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
+        ))
+  ))
 
-                 actionButton(inputId='ab1', label="Learn More", 
-                              icon = icon("th"), 
-                              onclick ="window.open('https://www.aushsi.org.au/', '_blank')")
-        )
-      )
+
+body <- dashboardBody(
+  tabItems(
+    tabItem(tabName = 'setup',
+            h4("Visualisation",style='font-weight: bold;font-family: "Arial";color: #000000'),
+            fluidRow(box(title=NULL,status='primary',width=12,column(12,align="center",plotOutput("hist",width = "auto",height = "400px")))),
+            h4("Summary table",style='font-weight: bold;font-family: "Arial";color: #000000'),
+            fluidRow(box(title=NULL,status='primary',width=12,column(12, align="center",tableOutput("param_est"))))
+    ),
+    #faq
+    #tabItem(tabName = 'faq',h4('Frequently asked questions',style='font-weight: bold;font-family: "Arial";color: #000000')),
+    #citation info
+    tabItem(tabName = 'citation',h4('Further Information',style='font-weight: bold;font-family: "Arial";color: #000000'),
+            p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
+    actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url)),
+    actionButton("linedkin_share",label = "Share",icon = icon("linkedin"),onclick = sprintf("window.open('%s')", linkedin_url))
     )
-  )
-)
+  ),
+  
+  #style elements
+  tags$head(tags$style(HTML('
+                                /* logo */
+                                .skin-blue .main-header .logo {
+                                background-color: #003D58;
+                                color: #EAE23B;
+                                font-family: "Arial";
+                                font-weight: bold;
+                                font-size: 24px;
+                                margin-left: 0px;
+
+                                }
+
+                                /* navbar (rest of the header) */
+                                .skin-blue .main-header .navbar {
+                                background-color: #003D58;
+                                }
+                                
+                                /* main sidebar */
+                                .skin-blue .main-sidebar {
+                                background-color: #009FE3;
+                                font-family: "Arial";
+                                font-size: 16px;
+                                font-weight:bold;
+                                }
+                                
+                                /* active selected tab in the sidebarmenu */
+                                .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+                                background-color: #009FE3;
+                                color: #EAE23B;
+                                
+                                }
+            
+                                /* other links in the sidebarmenu */
+                                .skin-blue .main-sidebar .sidebar .sidebar-menu a{
+                                background-color:#009FE3;
+                                color: #003D58;
+                                }
+
+
+                                /* body */
+                                .content-wrapper, .right-side {
+                                background-color: #FFFFFF;
+                                }
+                              
+                                /*other text*/
+                                .shiny-output-error-validation {color: #EAE23B;font-weight: bold;}
+                                
+}
+                                '))),
+  tags$script("document.getElementsByClassName('sidebar-toggle')[0].style.visibility = 'hidden';"),
+
 )
 
+ui <- dashboardPage(header, sidebar, body)
