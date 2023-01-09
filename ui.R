@@ -65,7 +65,7 @@ sidebar <- dashboardSidebar(
         ),
         
         conditionalPanel("input.sidebar == 'remove_selected'",
-                         fluidRow(column(12,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T),style='margin-left:15px')),
+                         fluidRow(column(6,selectInput(inputId = "select_output",label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T),style='margin-left:15px')),
                          fluidRow(column(6,actionButton(inputId = "remove_result",label="Remove selected distribution(s)",icon=icon("trash"),style='margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
         ))
   ))
@@ -79,13 +79,14 @@ body <- dashboardBody(
             h4("Summary table",style='font-weight: bold;font-family: "Arial";color: #000000'),
             fluidRow(box(title=NULL,status='primary',width=12,column(12, align="center",tableOutput("param_est"))))
     ),
-    #faq
-    #tabItem(tabName = 'faq',h4('Frequently asked questions',style='font-weight: bold;font-family: "Arial";color: #000000')),
     #citation info
-    tabItem(tabName = 'overview',h4('Overview',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            p("An overview of ShinyPrior with examples can be found here [add DOI]")),
+    tabItem(tabName = 'overview',
+            #h4('Overview',style='font-weight: bold;font-family: "Arial";color: #000000'),
+            #p("An overview of ShinyPrior with examples can be found here [add DOI]"), #move to rmd
+            includeMarkdown("vignette_v1.md")
+            ),
     tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            p("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
+            h5("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
             
             fluidRow(
               column(1,actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url))),
@@ -138,9 +139,12 @@ body <- dashboardBody(
                                 .content-wrapper, .right-side {
                                 background-color: #FFFFFF;
                                 }
-                              
+
                                 /*other text*/
                                 .shiny-output-error-validation {color: #EAE23B;font-weight: bold;}
+                                
+
+                                
                                 '))),
   tags$script("document.getElementsByClassName('sidebar-toggle')[0].style.visibility = 'hidden';"),
   

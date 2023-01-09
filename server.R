@@ -205,5 +205,6 @@ shinyServer(function(input, output,session) {
       fn_download_fig()
       file.copy(fn_downloadname_fig(), file, overwrite=T)
     }
-  )  
+  )
+
 })
