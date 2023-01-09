@@ -34,7 +34,7 @@ sidebar <- dashboardSidebar(
                          column(6,uiOutput(paste0("ui_evidence")))),
                          
                          #step 3
-                         fluidRow(column(4,actionButton(inputId = "go",label="Estimate distribution"))),
+                         fluidRow(column(4,actionButton(inputId = "go",label="Estimate distribution",icon=icon('calculator'),style='background-color:	#f9f9f9;font-family: Arial;font-weight: bold'))),
                          column(12,style='padding-top:15px;'),
                          column(10,textOutput("input_error"),style='margin-left:15px')#,
                          
