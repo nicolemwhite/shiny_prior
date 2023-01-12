@@ -12,7 +12,8 @@ sidebar <- dashboardSidebar(
              menuSubItem(text="Visualisation",tabName = 'visualisation',icon=icon('bar-chart')),
              menuSubItem(text="Summary table",tabName = 'summary_table',icon=icon('table')),
              menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))),
-    menuItem("Overview", tabName = "overview", icon = icon("list-alt")),
+    menuItem("About", tabName = "overview", icon = icon("question-circle-o")),
+    menuItem("Github", icon = icon("github"), href = "https://github.com/nicolemwhite/ShinyPrior"),
     menuItem("Contact", tabName = "contact", icon = icon("envelope")),
     
     div(id = 'sidebar_setup',
