@@ -92,9 +92,11 @@ shinyServer(function(input, output,session) {
   
   #needs updating
   create_table <- function(){
-    ftab <- bind_rows(results[['table_output']])
-    dist_family <- unlist(results[['output_family']])
-
+    include_vars <-  intersect(input$select_output_plot,results$output_name)
+    
+    
+    ftab <- bind_rows(lapply(include_vars,function(i) results[['table_output']][[i]]))
+    dist_family <- unlist(lapply(include_vars, function(i) results[['output_family']][[i]]))
     
     if(nrow(ftab)>0){
       if(!is.null(input$summary_stats)){
@@ -107,7 +109,7 @@ shinyServer(function(input, output,session) {
       ftab <- ftab %>% add_column('Distribution family'=dist_family)
       
       row_order_vars <- intersect(input$table_order,colnames(ftab))
-      ftab <- ftab %>% arrange(across((row_order_vars))) %>% select(-'Distribution family')
+      ftab <- ftab %>% arrange(across(all_of(row_order_vars))) %>% select(-'Distribution family')
       }
     }
     ftab 

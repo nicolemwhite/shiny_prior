@@ -14,7 +14,7 @@ sidebar <- dashboardSidebar(
              menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))),
     menuItem("Overview", tabName = "overview", icon = icon("list-alt")),
     menuItem("Contact", tabName = "contact", icon = icon("envelope")),
-
+    
     div(id = 'sidebar_setup',
         conditionalPanel("input.sidebar == 'setup'",
                          fluidRow(column(6,
@@ -27,11 +27,11 @@ sidebar <- dashboardSidebar(
                                                                  'Log-normal' = paste0("lnorm"),
                                                                  "Weibull" = paste0("weib")),
                                                      selected = paste0("norm"))),
-                         column(6,textInput('dist_label',label='Description',placeholder = 'hello_world'))),
+                                  column(6,textInput('dist_label',label='Description',placeholder = 'hello_world'))),
                          
                          #step 2
                          fluidRow(column(6,uiOutput(paste0("ui_dist"))),
-                         column(6,uiOutput(paste0("ui_evidence")))),
+                                  column(6,uiOutput(paste0("ui_evidence")))),
                          
                          #step 3
                          fluidRow(column(4,actionButton(inputId = "go",label="Estimate distribution",icon=icon('calculator'),style='background-color:	#f9f9f9;font-family: Arial;font-weight: bold'))),
@@ -39,8 +39,12 @@ sidebar <- dashboardSidebar(
                          column(10,textOutput("input_error"),style='margin-left:15px')#,
                          
         ),
+        conditionalPanel("input.sidebar == 'visualisation'||input.sidebar == 'summary_table'",
+        column(10,selectInput('select_output_plot',label='Select distribution(s)',choices=NULL,multiple=TRUE,selectize=T))
+        ),
+        
+        
         conditionalPanel("input.sidebar == 'visualisation'",
-                         (column(10,selectInput('select_output_plot',label='Select distribution(s) to plot',choices=NULL,multiple=TRUE,selectize=T))),
                          fluidRow(style='margin-left:0px',
                                   column(6,selectInput('colourscheme',label='Choose colour scheme',choices = names(colourschemes),selected = 'Greyscale')),
                                   column(6, selectInput("theme", label = "Select plot theme", choices = names(themes),selected = 'Minimal'))),
@@ -52,7 +56,7 @@ sidebar <- dashboardSidebar(
                                   column(3,selectInput(inputId = "fres",label = "Resolution",c("300 dpi"=300,"600 dpi"=600),selected = "300")),
                                   column(3,numericInput(inputId = "fheight",label = "Height (cm)",min = 8,max = 22,step = 1,value = 10)),
                                   column(3,numericInput(inputId = "fwidth",label = "Width (cm)",min = 8,max = 22,step = 1,value = 15))),
-                         fluidRow(style='margin-left:0px',column(10,textInput(inputId = 'fig_fname',label='Figure name',value='figure'))),
+                         fluidRow(style='margin-left:0px',column(10,textInput(inputId = 'fig_fname',label='Figure name',value='shinyprior_figure'))),
                          fluidRow(column(6,downloadButton("downloadFigure", "Download Figure",style = 'margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
         ),
         conditionalPanel("input.sidebar == 'summary_table'",
@@ -60,7 +64,7 @@ sidebar <- dashboardSidebar(
                                                       selected = c('Form of evidence','Distribution','Mean (SD)','Mean (95% Interval)','Median (Q1 to Q3)'),inline=F)),
                          
                          column(12,checkboxGroupInput(inputId = 'table_order',label='Arrange rows by:',choices = c('Description','Distribution family'),selected=NULL,inline=TRUE)),
-                         fluidRow(column(10,textInput(inputId = 'tab_fname',label='Table name',value='table'),style='margin-left:15px')),
+                         fluidRow(column(10,textInput(inputId = 'tab_fname',label='Table name',value='shinyprior_table'),style='margin-left:15px')),
                          fluidRow(column(6,downloadButton("downloadTable", "Download table",style='margin-left:30px;background-color:	#f9f9f9;font-family: Arial;font-weight: bold')))
         ),
         
@@ -84,7 +88,7 @@ body <- dashboardBody(
             #h4('Overview',style='font-weight: bold;font-family: "Arial";color: #000000'),
             #p("An overview of ShinyPrior with examples can be found here [add DOI]"), #move to rmd
             includeMarkdown("vignette_v1.md")
-            ),
+    ),
     tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
             h5("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
             
