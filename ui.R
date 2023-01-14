@@ -1,3 +1,4 @@
+rmarkdown::render("vignette_v1.Rmd")
 #header
 header <- dashboardHeader(title = "ShinyPrior: A tool for estimating probability distributions using published evidence",titleWidth = 990,disable=F)
 
@@ -6,7 +7,7 @@ sidebar <- dashboardSidebar(
   width=600,
   sidebarMenu(
     id = 'sidebar',
-    
+    menuItem("Home", tabName = "home", icon=icon("home"),selected = T),
     menuItem("Define distribution inputs", tabName = "setup", icon = icon("list"),startExpanded = T),
     menuItem("Customisation", tabName = "customise", icon = icon("wrench"),startExpanded = F,
              menuSubItem(text="Visualisation",tabName = 'visualisation',icon=icon('bar-chart')),
@@ -14,6 +15,7 @@ sidebar <- dashboardSidebar(
              menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))),
     menuItem("About", tabName = "overview", icon = icon("question-circle-o")),
     menuItem("Github", icon = icon("github"), href = "https://github.com/nicolemwhite/ShinyPrior"),
+    menuItem("Resources",tabName = "resources",icon = icon("book")),
     menuItem("Contact", tabName = "contact", icon = icon("envelope")),
     
     div(id = 'sidebar_setup',
@@ -51,7 +53,7 @@ sidebar <- dashboardSidebar(
                                   column(6, selectInput("theme", label = "Select plot theme", choices = names(themes),selected = 'Minimal'))),
                          fluidRow(style='margin-left:0px',column(6,textInput('xlabtext',label='x-axis label',value = 'Value')),
                                   column(6,textInput('ylabtext',label='y-axis label',value = 'Density'))),
-                         fluidRow(style='margin-left:0px',column(6,radioButtons(inputId='legend','Display legend?',choices=names(legend_positions),selected = "Yes",inline=TRUE),style = 'margin-top:10px'),column(6,uiOutput("legend_title"))),
+                         fluidRow(style='margin-left:0px',column(6,radioButtons(inputId='legend','Display legend',choices=names(legend_positions),selected = "Yes",inline=TRUE),style = 'margin-top:10px'),column(6,uiOutput("legend_title"))),
                          fluidRow(style='margin-left:0px',
                                   column(3,selectInput("fformat", "Format",c("png" = "png","tiff" = "tiff","jpeg" = "jpeg"), 'png')),
                                   column(3,selectInput(inputId = "fres",label = "Resolution",c("300 dpi"=300,"600 dpi"=600),selected = "300")),
@@ -78,20 +80,28 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   tabItems(
-    tabItem(tabName = 'setup',
+    #citation info
+    tabItem(tabName = 'overview',
+            #includeMarkdown("vignette_v1.md")
+
+            fluidPage(
+              htmltools::tags$iframe(src = "vignette_v1.html", width = '100%',  height = 1000,  style = "border:none;"))
+    ),
+    
+    tabItem(tabName = 'home',
             h4("Visualisation",style='font-weight: bold;font-family: "Arial";color: #000000'),
             fluidRow(box(title=NULL,status='primary',width=12,column(12,align="center",plotOutput("hist",width = "auto",height = "400px")))),
             h4("Summary table",style='font-weight: bold;font-family: "Arial";color: #000000'),
             fluidRow(box(title=NULL,status='primary',width=12,column(12, align="center",tableOutput("param_est"))))
     ),
-    #citation info
-    tabItem(tabName = 'overview',
-            #h4('Overview',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            #p("An overview of ShinyPrior with examples can be found here [add DOI]"), #move to rmd
-            includeMarkdown("vignette_v1.md")
+
+
+    tabItem(tabName = 'resources',
+            h5("to do")
     ),
     tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            h5("Questions about ShinyPrior and suggestions for improvements can be sent to Nicole White (nm.white@qut.edu.au)"),
+            h5("Questions about ShinyPrior and suggestions for improvements can be sent to",a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White"),"(nm.white@qut.edu.au)"),
+
             
             fluidRow(
               column(1,actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url))),
@@ -111,11 +121,14 @@ body <- dashboardBody(
                                 font-size: 24px;
                                 margin-left: 0px;
 
+
                                 }
 
                                 /* navbar (rest of the header) */
                                 .skin-blue .main-header .navbar {
                                 background-color: #003D58;
+
+
                                 }
                                 
                                 /* main sidebar */
@@ -124,6 +137,8 @@ body <- dashboardBody(
                                 font-family: "Arial";
                                 font-size: 16px;
                                 font-weight:bold;
+
+                                
                                 }
                                 
                                 /* active selected tab in the sidebarmenu */
@@ -143,6 +158,7 @@ body <- dashboardBody(
                                 /* body */
                                 .content-wrapper, .right-side {
                                 background-color: #FFFFFF;
+
                                 }
 
                                 /*other text*/

@@ -316,7 +316,7 @@ check_lognormal_params <- function(evidence_type,sample_vals){
 }
 
 check_missing_inputs <-function(sample_vals){
-  if(anyNA(sample_vals)==T){"At least one input is empty. Please specify all values based on the form of evidence selected in Step 2"}
+  if(anyNA(sample_vals)==T){"At least one input is empty. Please specify all values based on the form of evidence selected before clicking 'Estimate distribution'"}
   else{NULL}
 }
 
@@ -338,7 +338,7 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
   dist_name = dist_obj$dist_name
   
   if(dist_label==''){"Empty description. Please provide a name for your distrbution in Step 1. Names already stored in the final output table will be overwritten."}
-  else if(dist_label!='' & anyNA(sample_vals)==T){"At least one input is empty. Please enter all required values based on the form of evidence selected in Step 2"}
+  else if(dist_label!='' & anyNA(sample_vals)==T){"At least one input is empty. Please enter all required values based on the form of evidence selected before clicking 'Estimate distribution'"}
   else if (dist_label!='' & anyNA(sample_vals)==F){
     switch(dist_name,
            'norm'= check_normal_params(evidence_type,sample_vals),
@@ -364,9 +364,9 @@ estimate_dist_parameters = function(dist_name,evidence_type,sample_dat){
 }
 
 check_parameter_estimates<-function(dist_name,param_est){
-  if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
-  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
-  else if (anyNA(param_est)|any(is.null(param_est))){"Solution not defined. Check all inputs in Step 2 or consider using a different distribution family in Step 1"}
+  if(dist_name %in% c('norm','lnorm') & param_est[2]<=0){"Solution not defined. Check all inputs or consider using a different distribution family"}
+  else if (dist_name %in% c('gamma','beta','weib') & any(param_est<=0)==T){"Solution not defined. Check all inputs or consider using a different distribution family"}
+  else if (anyNA(param_est)|any(is.null(param_est))){"Solution not defined. Check all inputs or consider using a different distribution family"}
   else{NULL}
 }
 
@@ -507,17 +507,17 @@ colourschemes <- list('Greyscale' = c("#000000","#737373","#BDBDBD","#D9D9D9","#
                       "Set1" = brewer.pal(n=8,name="Set1"),
                       "Set2"=brewer.pal(n=8,name="Set2"),
                       "Set3"=brewer.pal(n=8,name="Set3"),
-                      'Colour-blind friendly'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+                      'Colourblind-1'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+                      'Colourblind-2'=  c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
                       )
 
 
-themes <- list("Light" = theme_light(),
-               "Minimal" = theme_minimal(),
+themes <- list("Minimal" = theme_minimal(),
+               "Light" = theme_light(),
                "Black/White" = theme_bw(),
                "Classic" = theme_classic(),
                "Gray"=theme_gray())
-legend_positions <- list("No" = 'none',
-                         "Yes" = 'right')
+legend_positions <- list("Yes" = 'right',"No" = 'none')
 
 removeReactiveValuesIndex <- function(rv, ind) { .subset2(rv, "impl")$.values$remove(ind) }
 
@@ -541,6 +541,9 @@ calc_xlim <- function(dist_family,parm_est){
          'lnorm' = qlnorm(p=c(0.0001,0.9999),meanlog=parm_est[1],sdlog=parm_est[2]),
          'weib' = qweibull(p=c(0.0001,0.9999),shape=parm_est[1],scale=parm_est[2]))
 }
+
+
+
 
 sect_properties <- prop_section(
   page_size = page_size(orient = "landscape",
