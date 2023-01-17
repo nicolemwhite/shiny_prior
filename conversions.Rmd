@@ -1,0 +1,67 @@
+---
+title: "Conversions from R to Stata, TreeAge"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(flextable)
+
+```
+
+***Parameterisation used in R, Stata, and TreeAge Pro***
+```{r}
+convtable<-tibble(
+  Distribution = c("Normal","Gamma","log-Normal","Weibull","Beta","Uniform"),
+  `R parameters` = c("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
+                     "G(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                     "LN(\u3bc,\u3c3)\nMean: \u3bc > 0\nStandard deviation, \u3c3 > 0",
+                     "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
+                     "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                     "U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),
+  `Stata parameters` = c("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
+                         "N/A",
+                         "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
+                         "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
+                         "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                         "U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),
+  `TreeAge Pro parameters` = c("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
+                    "G(\u3bc,1/\u3b2)\nShape: \u3b1 > 0\nRate: 1/\u3b2 > 0",
+                    "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
+                    "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
+                    "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                    "U(LB,UB)\nLower Bound: LB\nUpper Bound: UB\n-\u221e < LB < UB < \u221e"))
+
+show_convtable = flextable(convtable) %>% 
+  merge_v(j=c("Distribution","R parameters","Stata parameters","TreeAge Pro parameters")) %>% theme_box %>% width(width=c(1.25,2,2,2))
+htmltools_value(show_convtable)
+
+```
+
+  
+<!--   Distribution = c(rep("Normal",3), -->
+<!--                    rep("Gamma",3),rep("log-Normal",3),rep("Weibull",3),rep("Beta",4),rep("Uniform",4)), -->
+<!--   Parameterisation = c(rep(paste0("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0"),3), -->
+<!--                        rep(paste0("G(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0"),3), -->
+<!--                        rep(paste0("LN(\u3bc,\u3c3)\nMean: \u3bc > 0\nStandard deviation, \u3c3 > 0"),3), -->
+<!--                        rep(paste0("Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0"),3), -->
+<!--                        rep(paste0("Beta(\u3b1,\u3b2)\n\nShape: \u3b1 > 0\nScale: \u3b2 > 0"),4), -->
+<!--                        rep(paste0("U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),4)), -->
+<!--   `Form(s) of evidence supported` = c(common_opts, -->
+<!--                                       common_opts, -->
+<!--                                       common_opts, -->
+<!--                                       common_opts, -->
+<!--                                       c(common_opts,"Number of events, sample size"), -->
+<!--                                       c(common_opts,"Minumum, Maximum")), -->
+<!--   `Estimation method` = c("Closed-form","Closed-form","toadd", -->
+<!--                           "Closed-form","Numerical optimisation","toadd", -->
+<!--                           "Closed-form","Closed-form","toadd", -->
+<!--                           "Numerical optimisation","Closed-form","toadd", -->
+<!--                           "Closed-form","Closed-form","toadd","Closed-form", -->
+<!--                           rep("Closed-form",4))) -->
+<!-- show_tab1 = flextable(tab1) %>%  -->
+<!--   merge_v(j=c("Distribution","Parameterisation")) %>% theme_box %>% width(width=c(1.25,2.5,3,3)) %>% set_caption("Table 1: Available distributions and forms of evidence") -->
+<!-- htmltools_value(show_tab1) -->
+<!-- ``` -->
