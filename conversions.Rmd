@@ -19,20 +19,20 @@ convtable<-tibble(
                      "G(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
                      "LN(\u3bc,\u3c3)\nMean: \u3bc > 0\nStandard deviation, \u3c3 > 0",
                      "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
-                     "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                     "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nShape: \u3b2 > 0",
                      "U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),
-  `Stata parameters` = c("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
-                         "N/A",
-                         "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
-                         "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
-                         "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+  `Stata parameters` = c("normalden(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
+                         "gammaden(a,b,g,x)\nShape: a > 0\nScale: b > 0\nLocation: g = 0",
+                         "lnnormalden(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
+                         "weibullden(a,b,x)\nShape: a = \u3bb > 0\nScale: b = \u006b > 0",
+                         "betaden(a,b,x)\nShape: a = \u3b1 > 0\nShape: b = \u3b2 > 0",
                          "U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),
   `TreeAge Pro parameters` = c("N(\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
-                    "G(\u3bc,1/\u3b2)\nShape: \u3b1 > 0\nRate: 1/\u3b2 > 0",
-                    "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
-                    "Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0",
-                    "Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
-                    "U(LB,UB)\nLower Bound: LB\nUpper Bound: UB\n-\u221e < LB < UB < \u221e"))
+                               "G(\u3b1,\u3bb)\nShape: \u3b1 > 0\nRate: \u3bb = 1/\u3b2 > 0",
+                               "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
+                               "Weib(\u3bb,\u006b)\nShape: 1/\u3bb\u1d4f > 0\nScale: \u006b > 0",
+                               "Beta(a,b)\nShape: a = \u3b1 > 0\nShape: b = \u3b2 > 0",
+                               "U(LB,UB)\nLower Bound: LB\nUpper Bound: UB\n-\u221e < LB < UB < \u221e"))
 
 show_convtable = flextable(convtable) %>% 
   merge_v(j=c("Distribution","R parameters","Stata parameters","TreeAge Pro parameters")) %>% theme_box %>% width(width=c(1.25,2,2,2))

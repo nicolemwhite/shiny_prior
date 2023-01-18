@@ -68,7 +68,7 @@ tab1<-tibble(
                        rep(paste0("G(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0"),3),
                        rep(paste0("LN(\u3bc,\u3c3)\nMean: \u3bc > 0\nStandard deviation, \u3c3 > 0"),3),
                        rep(paste0("Weib(\u3bb,\u006b)\nShape: \u3bb > 0\nScale: \u006b > 0"),3),
-                       rep(paste0("Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0"),4),
+                       rep(paste0("Beta(\u3b1,\u3b2)\nShape: \u3b1 > 0\nShape: \u3b2 > 0"),4),
                        rep(paste0("U(\u0061,\u0062)\nMinimum: \u0061\nMaximum: \u0062\n-\u221e < \u0061 < \u0062 < \u221e"),4)),
   `Form(s) of evidence supported` = c(common_opts,
                                       common_opts,
