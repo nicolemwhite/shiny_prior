@@ -82,10 +82,8 @@ body <- dashboardBody(
   tabItems(
     #citation info
     tabItem(tabName = 'overview',
-            #includeMarkdown("vignette_v1.md")
-
             fluidPage(
-              htmltools::tags$iframe(src = "vignette_v1.html", width = '100%',  height = 1000,  style = "border:none;"))
+              htmltools::tags$iframe(src = "vignette_v2.html", width = '100%',  height = 1000,  style = "border:none;"))
     ),
     
     tabItem(tabName = 'home',
