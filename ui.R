@@ -95,7 +95,8 @@ body <- dashboardBody(
 
 
     tabItem(tabName = 'resources',
-            h5("to do")
+            fluidPage(
+              htmltools::tags$iframe(src = "conversions.html", width = '100%',  height = 1000,  style = "border:none;"))
     ),
     tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
             h5("Questions about ShinyPrior and suggestions for improvements can be sent to",a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White"),"(nm.white@qut.edu.au)"),
