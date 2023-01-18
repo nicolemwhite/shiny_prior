@@ -11,7 +11,7 @@ library(flextable)
 
 ```
 
-***Parameterisation used in R, Stata, and TreeAge Pro***
+***Parameterisation used in R, Stata, TreeAge Pro and MS Excel***
 ```{r}
 convtable<-tibble(
   Distribution = c("Normal","Gamma","log-Normal","Weibull","Beta","Uniform"),
@@ -32,10 +32,17 @@ convtable<-tibble(
                                "LN(exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
                                "Weib(\u3bb,\u006b)\nShape: 1/\u3bb\u1d4f > 0\nScale: \u006b > 0",
                                "Beta(a,b)\nShape: a = \u3b1 > 0\nShape: b = \u3b2 > 0",
-                               "U(LB,UB)\nLower Bound: LB\nUpper Bound: UB\n-\u221e < LB < UB < \u221e"))
+                               "U(LB,UB)\nLower Bound: LB\nUpper Bound: UB\n-\u221e < LB < UB < \u221e"),
+  `MS Excel parameters` = c("NORM.INV(x,\u3bc,\u3c3)\nMean: -\u221e < \u3bc < \u221e\nStandard deviation, \u3c3 > 0",
+                            "GAMMA.INV(x,\u3b1,\u3b2)\nShape: \u3b1 > 0\nScale: \u3b2 > 0",
+                            "LOGNORM.INV(x,exp(\u3bc),\u3c3)\nMean: exp(\u3bc) > 0\nStandard deviation, \u3c3 > 0",
+                            "Weibull inverse function not supported",
+                            "BETA.INV(x,\u3b1,\u3b2)\nShape: \u3b1 > 0\nShape: \u3b2 > 0",
+                            "RANDBETWEEN(bottom,top)\nMinimum: bottom\nMaximum: top\n-\u221e < bottom < top < \u221e"))
+
 
 show_convtable = flextable(convtable) %>% 
-  merge_v(j=c("Distribution","R parameters","Stata parameters","TreeAge Pro parameters")) %>% theme_box %>% width(width=c(1.25,2,2,2))
+  merge_v(j=c("Distribution","R parameters","Stata parameters","TreeAge Pro parameters","MS Excel parameters")) %>% theme_box %>% width(width=c(1.25,2,2,2,2))
 htmltools_value(show_convtable)
 
 ```
