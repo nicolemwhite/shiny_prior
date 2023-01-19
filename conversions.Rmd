@@ -1,7 +1,11 @@
 ---
 title: "Conversions from R to Stata, TreeAge"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 date: "`r Sys.Date()`"
+always_allow_html: true
+
 ---
 
 ```{r setup, include=FALSE}
