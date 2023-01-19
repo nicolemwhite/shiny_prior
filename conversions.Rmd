@@ -34,7 +34,7 @@ convtable<-tibble(
   `MS Excel parameters` = c("mean = \u3bc\nstandard_dev = \u3c3\n=NORM.INV(RAND(),mean,standard_dev)",
                             "alpha = \u3b1\nbeta = \u3b2\n=GAMMA.INV(RAND(),alpha,beta)",
                             "mean = \u3bc\nstandard_dev = \u3c3\n=LOGNORM.INV(RAND(),mean,standard_dev)",
-                            "shape = x\nscale = y\n=y(-LN(1-RAND()))^(1/x)",
+                            "shape = x\nscale = y\n=y(-LN(1-RAND()))^(1/x)",  #inverse transfer; ref Robert & Casella 2004
                             "alpha = \u3b1\nbeta = \u3b2\n=BETA.INV(RAND(),alpha,beta)",
                             "bottom = a\ntop = b\n=RANDBETWEEN(bottom,top)"),
   `TreeAge Pro parameters` = c("Mean = \u3bc\nStandard deviation = \u3c3",
