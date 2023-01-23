@@ -559,5 +559,5 @@ FitFlextableToPage <- function(ft, pgwidth = 6){
   ft_out <- width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable_dim(ft_out)$widths))
   return(ft_out)
 }
-twitter_url <- "https://twitter.com/intent/tweet?text=ShinyPrior%20-%20estimating%20distributions%20using%20published%20evidence&url=https://aushsi.shinyapps.io/ShinyPrior"
-linkedin_url <- "http://www.linkedin.com/shareArticle?mini=true&url=https://aushsi.shinyapps.io/ShinyPrior"
+# twitter_url <- "https://twitter.com/intent/tweet?text=ShinyPrior%20-%20estimating%20distributions%20using%20published%20evidence&url=https://aushsi.shinyapps.io/ShinyPrior"
+# linkedin_url <- "http://www.linkedin.com/shareArticle?mini=true&url=https://aushsi.shinyapps.io/ShinyPrior"

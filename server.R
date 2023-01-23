@@ -25,11 +25,6 @@ shinyServer(function(input, output,session) {
 
     parameter_estimates = estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
 
-
-    #no_soln<-check_parameter_estimates(dist_info()$dist_name,parameter_estimates)
-
-    #only proceed if solution for parameter estimates is found
-    #if(is.null(no_soln)){
       #table
     dat = switch(input[['dist_family']],
                  'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates),
@@ -43,7 +38,7 @@ shinyServer(function(input, output,session) {
      #figure
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
-    #}
+
     return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates,table_output = dat))
   }
 
@@ -65,9 +60,6 @@ shinyServer(function(input, output,session) {
   
   create_density_plot <- function(){
 
-    #if(input$colourscheme == "Greyscale") {color_selected = "Greys"}
-    #if(input$colourscheme == "Viridis") {color_selected = "Viridis"}
-    
     plot_theme = themes[[input$theme]]
     show_legend = legend_positions[[input$legend]]
     legend_title = input$custom_legend_title

@@ -14,9 +14,10 @@ sidebar <- dashboardSidebar(
              menuSubItem(text="Summary table",tabName = 'summary_table',icon=icon('table')),
              menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))),
     menuItem("About", tabName = "overview", icon = icon("question-circle-o")),
-    menuItem("Github", icon = icon("github"), href = "https://github.com/nicolemwhite/ShinyPrior"),
     menuItem("Resources",tabName = "resources",icon = icon("book")),
-    menuItem("Contact", tabName = "contact", icon = icon("envelope")),
+    menuItem("Contact", icon = icon("envelope"),href = "https://www.qut.edu.au/about/our-people/academic-profiles/nm.white"),
+    menuItem("Github", icon = icon("github"), href = "https://github.com/nicolemwhite/ShinyPrior"),
+
     
     div(id = 'sidebar_setup',
         conditionalPanel("input.sidebar == 'setup'",
@@ -99,13 +100,13 @@ body <- dashboardBody(
               htmltools::tags$iframe(src = "conversions.html", width = '100%',  height = 1000,  style = "border:none;"))
     ),
     tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            h5("Questions about ShinyPrior and suggestions for improvements can be sent to",a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White"),"(nm.white@qut.edu.au)"),
+            h5("Questions about ShinyPrior and suggestions for improvements can be sent to",a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White")),
 
-            
-            fluidRow(
-              column(1,actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url))),
-              column(1,actionButton("linedkin_share",label = "Share",icon = icon("linkedin"),onclick = sprintf("window.open('%s')", linkedin_url)))
-            )
+            # 
+            # fluidRow(
+            #   column(1,actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url))),
+            #   column(1,actionButton("linedkin_share",label = "Share",icon = icon("linkedin"),onclick = sprintf("window.open('%s')", linkedin_url)))
+            # )
     )
   ),
   
