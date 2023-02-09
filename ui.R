@@ -1,4 +1,3 @@
-rmarkdown::render("vignette_v1.Rmd")
 #header
 header <- dashboardHeader(title = "ShinyPrior: A tool for estimating probability distributions using published evidence",titleWidth = 990,disable=F)
 

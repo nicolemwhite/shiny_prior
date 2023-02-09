@@ -8,7 +8,6 @@ library(officer)
 library(RColorBrewer)
 library(knitr)
 
-knit("vignette_v1.Rmd","vignette_v1.md")
 #DISTRIBUTIONS
 #simulate values based on distribution and parameter estimates
 estimate_normal = function(evidence_type,sample_values){
