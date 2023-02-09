@@ -1,2 +1,2 @@
 # ShinyPrior
-Shiny application for visualising prior distributions based on published evidence
+ShinyPrior is a web-based application for estimating probability distributions from summary statistics. Results are presented as visualisations and summary tables for use in publications.
