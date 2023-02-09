@@ -16,7 +16,7 @@ estimate_normal = function(evidence_type,sample_values){
     mu_est = sample_values[1]
     sigma_est = sample_values[2]
   }
-  if(evidence_type=='ci'){
+  if(evidence_type=='perc'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
     cilevel_est = sample_values[3]/100
@@ -30,8 +30,8 @@ estimate_normal = function(evidence_type,sample_values){
 
 check_normal_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & sample_vals[2]<=0){paste("Check distribution inputs (Normal distribution): Uncertainty estimate must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Normal distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Normal distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='perc' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Normal distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='perc' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Normal distribution): Define percentile coverage as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -52,7 +52,6 @@ summary_stats_normal = function(dist_label,evidence_type,param_est){
 }
 
 
-#'Form of evidence','Distribution','Mean (95% uncertainty interval)','Median (Q1 to Q3)'
 
 #gamma distribution
 estimate_gamma = function(evidence_type,sample_values){
@@ -62,7 +61,7 @@ estimate_gamma = function(evidence_type,sample_values){
     shape_est = (mean_est/sigma_est)^2
     scale_est = (sigma_est^2)/mean_est 
     }
-  if(evidence_type=='ci'){
+  if(evidence_type=='perc'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
     cilevel_est = sample_values[3]/100
@@ -100,9 +99,9 @@ summary_stats_gamma = function(dist_label,evidence_type,param_est){
 
 check_gamma_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Gamma distribution): Mean and uncertainty estimates must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Gamma distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Gamma distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Gamma distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='perc' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Gamma distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='perc' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Gamma distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='perc' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Gamma distribution): Define percentile coverage as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -118,7 +117,7 @@ estimate_weibull = function(evidence_type,sample_values){
     shape_est <- exp(out$root)
     scale_est <- mu_est/gamma(1+1/shape_est)
   }
-  if(evidence_type=='ci'){
+  if(evidence_type=='perc'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
     cilevel_est = sample_values[3]/100
@@ -138,8 +137,6 @@ summary_stats_weibull = function(dist_label,evidence_type,param_est){
   
   sigma_est = sqrt((scale_est^2)*(gamma(1+2/shape_est)-(gamma(1+1/shape_est))^2))
   
-  #sigma_est = sqrt(shape_est)*scale_est #check this
-  
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
                     "Distribution" = nice_names("weib",param_est), #input[['dist_family']];parameter_es
@@ -157,9 +154,9 @@ summary_stats_weibull = function(dist_label,evidence_type,param_est){
 
 check_weibull_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Weibull distribution): Mean and uncertainty estimates must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Weibull distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Weibull distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Weibull distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='perc' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Weibull distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='perc' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Weibull distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='perc' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution input (Weibull distribution): Define percentile coverage as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -176,7 +173,7 @@ estimate_beta = function(evidence_type,sample_values){
     a_est = sample_values[1]
     b_est = sample_values[2] - a_est
   }
-  if(evidence_type=='ci'){
+  if(evidence_type=='perc'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
     cilevel_est = sample_values[3]/100
@@ -223,9 +220,9 @@ summary_stats_beta = function(dist_label,evidence_type,param_est){
 #testing needed
 check_beta_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (any(sample_vals[1:2]<=0)|any(sample_vals[1:2]>=1))){paste("Check distribution inputs (Beta distribution): Mean and uncertainty estimates must be between 0 and 1")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & (any(sample_vals[1:2]<=0)|any(sample_vals[1:2]>=1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
-  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Beta distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='perc' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='perc' & (any(sample_vals[1:2]<=0)|any(sample_vals[1:2]>=1))){paste("Check distribution inputs (Beta distribution): Lower and upper interval values must be between 0 and 1")}
+  else if (evidence_type=='perc' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Beta distribution): Define percentile coverage as a % value between 0 and 100")}
   else if (evidence_type=='r_n' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Beta distribution): Number of events must be less than sample size")}
   else{NULL}
 }
@@ -271,7 +268,7 @@ estimate_lognormal = function(evidence_type,sample_values){
     mu_est = log(sample_values[1]^2/sqrt(sample_values[2]^2+sample_values[1]^2))
     sigma_est = sqrt(log(1+(sample_values[2]^2)/(sample_values[1]^2)))
   }
-  if(evidence_type=='ci'){ 
+  if(evidence_type=='perc'){ 
     cilow_est = log(sample_values[1])
     cihigh_est = log(sample_values[2])
     cilevel_est = sample_values[3]/100
@@ -309,9 +306,9 @@ summary_stats_lognormal = function(dist_label,evidence_type,param_est){
 
 check_lognormal_params <- function(evidence_type,sample_vals){
   if (evidence_type=='mean_se' & (sample_vals[1]<=0|sample_vals[2]<=0)){paste("Check distribution inputs (Lognormal distribution): Mean and uncertainty estimates must be greater than 0")}
-  else if (evidence_type=='ci' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Lognormal distribution): Lower interval value must be less than upper interval value")}
-  else if (evidence_type=='ci' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Lognormal distribution): Lower and upper interval values must be greater than 0")}
-  else if (evidence_type=='ci' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Lognormal distribution): Define confidence level as a % value between 0 and 100")}
+  else if (evidence_type=='perc' & sample_vals[1]>=sample_vals[2]){paste("Check distribution inputs (Lognormal distribution): Lower interval value must be less than upper interval value")}
+  else if (evidence_type=='perc' & sample_vals[1]<=0|sample_vals[2]<=0){paste("Check distribution inputs (Lognormal distribution): Lower and upper interval values must be greater than 0")}
+  else if (evidence_type=='perc' & (sample_vals[3]<=0|sample_vals[3]>=100)){paste("Check distribution inputs (Lognormal distribution): Define percentile coverage as a % value between 0 and 100")}
   else{NULL}
 }
 
@@ -370,19 +367,6 @@ check_parameter_estimates<-function(dist_name,param_est){
   else{NULL}
 }
 
-# sim_values = function(dist_family,n_samples,param_estimates){
-#   if(is.null(dist_family)||is.null(n_samples))
-#     return()
-#   d = dist_family
-#   
-#   switch(dist_name,
-#          'norm' = rnorm(n_samples,param_estimates['Mean'],param_estimates['Standard deviation']),
-#          'gamma' = rgamma(n_samples,shape = param_estimates['Shape'],scale = param_estimates['Scale']),
-#          'beta' = rbeta(n_samples,param_estimates['Shape (alpha)'],param_estimates['Shape (beta)']),
-#          'unif' = runif(n_samples,param_estimates['Minimum'],param_estimates['Maximum']),
-#          'lnorm' = stats::rlnorm(n_samples,param_estimates['Mean (log)'],param_estimates['Standard deviation (log)'])
-#   )
-# }
 
 
 
@@ -418,24 +402,24 @@ renderDistIn <- function(dist_obj){
   dist_name <-dist_obj$dist_name
   switch(dist_name,
          "norm" = selectInput(inputId = 'parms_in',label='Form of evidence',
-                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                              choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                               selected='mean_se'),
                               
          "gamma" = selectInput(inputId = 'parms_in',label='Form of evidence',
-                               choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                               choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                                selected='mean_se'),
          
          "beta" = selectInput(inputId = 'parms_in',label='Form of evidence',
-                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci','Number of events, sample size' = 'r_n'),
+                              choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc','Number of events, sample size' = 'r_n'),
                               selected='mean_se'),
          
          "unif" = selectInput(inputId = 'parms_in',label='Form of evidence',choices = c('Min/Max'='min_max'),selected='min_max'),
          
          "lnorm" = selectInput(inputId = 'parms_in',label='Form of evidence',
-                               choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                               choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                                selected='mean_se'),
          "weib" = selectInput(inputId = 'parms_in',label='Form of evidence',
-                              choices = c('Mean with uncertainty'='mean_se','Confidence interval'='ci'),
+                              choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                               selected='mean_se')
   )
 }
@@ -461,11 +445,11 @@ define_evidence_options <- function(input_obj){
   d = unlist(strsplit(state$evidence_type,'_'))
   state$parms = d
   state$evidence_type = paste(state$parms,collapse='_')
-  state$evidence_parms = if(state$evidence_type != 'ci'){state$parms} else{c('lower_ci','upper_ci','ci_level')}
+  state$evidence_parms = if(state$evidence_type != 'perc'){state$parms} else{c('lower_perc','upper_perc','perc_level')}
   state$labels = switch(
     state$evidence_type,
     'mean_se' =  c('Mean','Uncertainty'),
-    'ci' = c('Lower interval value','Upper interval value','Confidence level (%)'),
+    'perc' = c('Lower interval value','Upper interval value','Percentile coverage (%)'),
     'r_n' = c('Number of events','Sample size'),
     'min_max' = c('Minimum','Maximum'),
     'mode_min_max' = c('Most likely value','Minimum', 'Maximum')  )
@@ -490,7 +474,7 @@ nice_names_evidence <- function(evidence_obj){
   evidence_type = paste(parms,collapse='_')
   switch(evidence_type,
          'mean_se' = paste0('Mean with uncertainty'),
-         'ci' = paste0('Confidence interval'),
+         'perc' = paste0('Percentiles'),
          'r_n' = paste0('Number of events, sample size'),
          'min_max' = paste0('Min/Max'),
          'mode_min_max' = paste0('Most likely value with Min/Max'),

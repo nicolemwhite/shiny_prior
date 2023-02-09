@@ -13,9 +13,6 @@ sidebar <- dashboardSidebar(
              menuSubItem(text="Visualisation",tabName = 'visualisation',icon=icon('bar-chart')),
              menuSubItem(text="Summary table",tabName = 'summary_table',icon=icon('table')),
              menuSubItem(text="Remove results from saved output",tabName = 'remove_selected',icon=icon('trash'))),
-    menuItem("About", tabName = "overview", icon = icon("question-circle-o")),
-    menuItem("Resources",tabName = "resources",icon = icon("book")),
-    menuItem("Contact", icon = icon("envelope"),href = "https://www.qut.edu.au/about/our-people/academic-profiles/nm.white"),
     menuItem("Github", icon = icon("github"), href = "https://github.com/nicolemwhite/ShinyPrior"),
 
     
@@ -81,33 +78,37 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   tabItems(
-    #citation info
-    tabItem(tabName = 'overview',
-            fluidPage(
-              htmltools::tags$iframe(src = "vignette_v2.html", width = '100%',  height = 1000,  style = "border:none;"))
+    tabItem(tabName='home',
+            #strong("About",style='font-family: "Arial";font-size:20px'),
+            br(),
+            p('ShinyPrior is a web-based application for estimating probability distributions from summary statistics. Results are presented as visualisations and summary tables for use in publications.',style='font-family: "Arial";font-size:16px'),
+            p('To use the application, start by selecting a distribution family and form of evidence from the "Define distribution inputs" menu. Users will then be prompted to enter required data based on the options selected. Application outputs in the main window can be customised via the "Customisation" menu.',style='font-family: "Arial";font-size:16px'),
+            p('Full details can be found in the ',a(href="https://www.aushsi.org.au","ShinyPrior vignette."),'Questions about ShinyPrior and suggestions for future updates can be sent to',a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White"),style='font-family: "Arial";font-size:16px'),
+            br(),
+            strong("Citation",style='font-family: "Arial";font-size:18px'),
+            br(),
+            p('If you use ShinyPrior in your work, please cite:',style='font-family: "Arial";font-size:16px'),
+            p('White, NM., Blythe, R. ShinyPior: A tool for estimating probability distributions from published evidence. OSF Preprints. 10 February 2023. doi:TODO',style='font-family: "Arial";font-size:16px'),
+            br(),
+            strong("Contributors",style='font-family: "Arial";font-size:18px'),
+            br(),
+            p('Nicole White (Conceptualization, Methodology, Software, Writing - Original Draft)',style='font-family: "Arial";font-size:16px'),
+            p('Robin Blythe (Conceptualization, Validation, Writing - Review & Editing)',style='font-family: "Arial";font-size:16px'),
+            br(),
+            strong("Acknowledgement",style='font-family: "Arial";font-size:18px'),
+            br(),
+            p('We thank', a(href="https://www.aushsi.org.au/about-us/team/hannah-carter/","Hannah Carter"),' and ',a(href="https://www.aushsi.org.au/about-us/team/adrian-barnett/","Adrian Barnett"),'for their feedback on early versions of the application, and', a(href="https://www.qut.edu.au/about/our-people/academic-profiles/dn.borg","David Borg"),'for feedback on the accompanying vignette',style='font-family: "Arial";font-size:16px')
     ),
     
-    tabItem(tabName = 'home',
+    tabItem(tabName = 'setup',
             h4("Visualisation",style='font-weight: bold;font-family: "Arial";color: #000000'),
             fluidRow(box(title=NULL,status='primary',width=12,column(12,align="center",plotOutput("hist",width = "auto",height = "400px")))),
             h4("Summary table",style='font-weight: bold;font-family: "Arial";color: #000000'),
             fluidRow(box(title=NULL,status='primary',width=12,column(12, align="center",tableOutput("param_est"))))
-    ),
-
-
-    tabItem(tabName = 'resources',
-            fluidPage(
-              htmltools::tags$iframe(src = "conversions.html", width = '100%',  height = 1000,  style = "border:none;"))
-    ),
-    tabItem(tabName = 'contact',h4('Contact',style='font-weight: bold;font-family: "Arial";color: #000000'),
-            h5("Questions about ShinyPrior and suggestions for improvements can be sent to",a(href="https://www.aushsi.org.au/about-us/team/nicole-white/", "Nicole White")),
-
-            # 
-            # fluidRow(
-            #   column(1,actionButton("twitter_share",label = "Share",icon = icon("twitter"),onclick = sprintf("window.open('%s')", twitter_url))),
-            #   column(1,actionButton("linedkin_share",label = "Share",icon = icon("linkedin"),onclick = sprintf("window.open('%s')", linkedin_url)))
-            # )
     )
+
+
+
   ),
   
   #style elements
