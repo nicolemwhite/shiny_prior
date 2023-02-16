@@ -87,7 +87,7 @@ body <- dashboardBody(
             strong("Citation",style='font-family: "Arial";font-size:18px'),
             br(),
             p('If you use ShinyPrior in your work, please cite:',style='font-family: "Arial";font-size:16px'),
-            p('White, NM., Blythe, R. ShinyPior: A tool for estimating probability distributions from published evidence. OSF Preprints. 10 February 2023. DOI:10.31219/osf.io/zf62e',style='font-family: "Arial";font-size:16px'),
+            p('White, NM., Blythe, R. ShinyPior: A tool for estimating probability distributions from published evidence. OSF Preprints. 16 February 2023. DOI:10.31219/osf.io/zf62e',style='font-family: "Arial";font-size:16px'),
             br(),
             strong("Contributors",style='font-family: "Arial";font-size:18px'),
             br(),
