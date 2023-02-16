@@ -200,6 +200,17 @@ shinyServer(function(input, output,session) {
       file.copy(fn_downloadname_fig(), file, overwrite=T)
     }
   )
+  
+  
+  
+  session$onSessionEnded(function() { 
+    fname = grep('.png|.tif|.jpg',list.files(),value=T)
+    unlink(fname)
+    
+    tname = grep('.docx',list.files(),value=T)
+      unlink(tname)
+    })
+
 
 })
 
