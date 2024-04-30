@@ -506,12 +506,12 @@ removeReactiveValuesIndex <- function(rv, ind) { .subset2(rv, "impl")$.values$re
 
 calc_dens <- function(dist_family,parm_est,dist_name){
   switch(dist_family,
-         'norm' = geom_function(fun = dnorm,args=list(mean=parm_est[1],sd=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'gamma' = geom_function(fun = dgamma,args=list(shape=parm_est[1],scale=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'beta' = geom_function(fun = dbeta,args=list(shape1=parm_est[1],shape2=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'unif' = geom_function(fun = dunif,args=list(min=parm_est[1],max=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'lnorm' = geom_function(fun = dlnorm,args=list(meanlog=parm_est[1],sdlog=parm_est[2]),size=1.25,aes(colour=dist_name)),
-         'weib' = geom_function(fun = dweibull,args=list(shape=parm_est[1],scale=parm_est[2]),size=1.25,aes(colour=dist_name)))
+         'norm' = geom_function(fun = dnorm,args=list(mean=parm_est[1],sd=parm_est[2]),linewidth=1.25,aes(colour=dist_name)),
+         'gamma' = geom_function(fun = dgamma,args=list(shape=parm_est[1],scale=parm_est[2]),linewidth=1.25,aes(colour=dist_name)),
+         'beta' = geom_function(fun = dbeta,args=list(shape1=parm_est[1],shape2=parm_est[2]),linewidth=1.25,aes(colour=dist_name)),
+         'unif' = geom_function(fun = dunif,args=list(min=parm_est[1],max=parm_est[2]),linewidth=1.25,aes(colour=dist_name)),
+         'lnorm' = geom_function(fun = dlnorm,args=list(meanlog=parm_est[1],sdlog=parm_est[2]),linewidth=1.25,aes(colour=dist_name)),
+         'weib' = geom_function(fun = dweibull,args=list(shape=parm_est[1],scale=parm_est[2]),linewidth=1.25,aes(colour=dist_name)))
 }
 
 
