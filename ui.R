@@ -32,7 +32,7 @@ sidebar <- dashboardSidebar(
                          #step 2
                          fluidRow(column(6,uiOutput(paste0("ui_dist"))),
                                   column(6,uiOutput(paste0("ui_evidence"))),
-                                  column(6,numericInput(inputId = "table_dps",label = "Decimal places in output",min = 0,max=5,step = 1,value = 1))),
+                                  column(6,numericInput(inputId = "table_dps",label = "Decimal places in output",min = 0,max=5,step = 1,value = 3))),
                          
                          #step 3
                          fluidRow(column(4,actionButton(inputId = "go",label="Estimate distribution",icon=icon('calculator'),style='background-color:	#f9f9f9;font-family: Arial;font-weight: bold'))),
