@@ -22,34 +22,34 @@ shinyServer(function(input, output,session) {
   #theoretical moments based on parameters estimates
   dist_summary = function(){
     validate(check_all_inputs(dist_info(),evidence_info()$evidence_type,estimate_info()))
-
+    
     parameter_estimates = estimate_dist_parameters(dist_name=dist_info()$dist_name,evidence_type= evidence_info()$evidence_type,sample_dat=estimate_info())
-
-      #table
+    
+    #table
     dat = switch(input[['dist_family']],
-                 'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates),
-                 'gamma'= summary_stats_gamma(input[['dist_label']],input[['parms_in']],parameter_estimates),
-                 'beta'= summary_stats_beta(input[['dist_label']],input[['parms_in']],parameter_estimates),
-                 'unif'= summary_stats_uniform(input[['dist_label']],input[['parms_in']],parameter_estimates),
-                 'lnorm' = summary_stats_lognormal(input[['dist_label']],input[['parms_in']],parameter_estimates),
-                 'weib' = summary_stats_weibull(input[['dist_label']],input[['parms_in']],parameter_estimates)
-                 )
-
-     #figure
+                 'norm'= summary_stats_normal(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']]),
+                 'gamma'= summary_stats_gamma(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']]),
+                 'beta'= summary_stats_beta(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']]),
+                 'unif'= summary_stats_uniform(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']]),
+                 'lnorm' = summary_stats_lognormal(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']]),
+                 'weib' = summary_stats_weibull(input[['dist_label']],input[['parms_in']],parameter_estimates,input[['table_dps']])
+    )
+    
+    #figure
     plot_colours = colourschemes[[input$colourscheme]]
     plot_theme = themes[[input$theme]]
-
+    
     return(list(output_name = input[['dist_label']],output_family = input[['dist_family']],param_est = parameter_estimates,table_output = dat))
   }
-
-
+  
+  
   #Outputs
   generate_outputs = eventReactive(input$go,({dist_summary()}))
   
   
   #Saved output
   results <- reactiveValues(output_name = NULL,output_family = NULL,param_est = NULL,table_output = NULL,bad_dist_params=NULL,flag_no_soln=NULL)
-
+  
   
   plot_colours <- reactive({
     need(expr=length(input$select_output_plot)<=length(colourschemes[[input$colourscheme]]),message=paste("The number of distributions exceeds the number of colours in the chosen colour scheme"))
@@ -59,7 +59,7 @@ shinyServer(function(input, output,session) {
   })
   
   create_density_plot <- function(){
-
+    
     plot_theme = themes[[input$theme]]
     show_legend = legend_positions[[input$legend]]
     legend_title = input$custom_legend_title
@@ -71,7 +71,7 @@ shinyServer(function(input, output,session) {
       x_min <- min(unlist(x_limits))
       x_max <- max(unlist(x_limits))
       
-     ggplot(data = data.frame(x=c(x_min,x_max)),aes(x)) + 
+      ggplot(data = data.frame(x=c(x_min,x_max)),aes(x)) + 
         lapply(include_vars, function(i){
           calc_dens(results[['output_family']][[i]],results[['param_est']][[i]],results[['output_name']][[i]])
         })+
@@ -93,15 +93,15 @@ shinyServer(function(input, output,session) {
     if(nrow(ftab)>0){
       if(!is.null(input$summary_stats)){
         ftab <- ftab[,c("Description",input$summary_stats)] 
-        }
+      }
       else{ftab <- data.frame(Description = ftab[,1])}
       
       if(!is.null(input$table_order)){
-      #temporarily add dist_family to ftab
-      ftab <- ftab %>% add_column('Distribution family'=dist_family)
-      
-      row_order_vars <- intersect(input$table_order,colnames(ftab))
-      ftab <- ftab %>% arrange(across(all_of(row_order_vars))) %>% select(-'Distribution family')
+        #temporarily add dist_family to ftab
+        ftab <- ftab %>% add_column('Distribution family'=dist_family)
+        
+        row_order_vars <- intersect(input$table_order,colnames(ftab))
+        ftab <- ftab %>% arrange(across(all_of(row_order_vars))) %>% select(-'Distribution family')
       }
     }
     ftab 
@@ -126,18 +126,22 @@ shinyServer(function(input, output,session) {
     to_remove <- input$select_output
     keep_results <- results
     for(x in names(results)){results[[x]] <<- keep_results[[x]][!(current_names %in% to_remove)]}
-
+    
+  })
+  
+  observeEvent(input$update_dps,{
+    
   })
   
   observe({updateSelectInput(session,inputId = "select_output",choices=results[['output_name']])})
   observe({updateSelectInput(session,inputId = "select_output_plot",choices=results[['output_name']],selected=isolate(input$dist_label))})
-
+  
   output$legend_title <- renderUI({
     if (input$legend == 'No') return(NULL) else {
       textInput(inputId ='custom_legend_title',label='Legend title',value='Description')
     }
   })
-
+  
   output$input_error <- renderText({print_errors()})
   output$hist = renderPlot({create_density_plot()})
   output$param_est = renderTable({create_table()})
@@ -208,10 +212,10 @@ shinyServer(function(input, output,session) {
     unlink(fname)
     
     tname = grep('.docx',list.files(),value=T)
-      unlink(tname)
-    })
-
-
+    unlink(tname)
+  })
+  
+  
 })
 
 
