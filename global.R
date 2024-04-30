@@ -34,19 +34,19 @@ check_normal_params <- function(evidence_type,sample_vals){
   else{NULL}
 }
 
-summary_stats_normal = function(dist_label,evidence_type,param_est){
+summary_stats_normal = function(dist_label,evidence_type,param_est,dps){
   mu_est = param_est[1];sigma_est = param_est[2]
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("norm",param_est),
-  "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-  "Mean (95% Interval)" = paste0(round(param_est[1],2),' (',
-                               round(qnorm(0.025,mu_est,sigma_est),2),' to ',
-                               round(qnorm(0.975,mu_est,sigma_est),2),')'), 
-  
-  "Median (Q1 to Q3)" = paste0(round(qnorm(0.5,mu_est,sigma_est),2),' (',
-                               round(qnorm(0.25,mu_est,sigma_est),2),' to ',
-                               round(qnorm(0.75,mu_est,sigma_est),2),')'),check.names=F)
+                    "Distribution" = nice_names("norm",param_est,dps),
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(param_est[1],dps),' (',
+                                                   roundz(qnorm(0.025,mu_est,sigma_est),dps),' to ',
+                                                   roundz(qnorm(0.975,mu_est,sigma_est),dps),')'), 
+                    
+                    "Median (Q1 to Q3)" = paste0(roundz(qnorm(0.5,mu_est,sigma_est),dps),' (',
+                                                 roundz(qnorm(0.25,mu_est,sigma_est),dps),' to ',
+                                                 roundz(qnorm(0.75,mu_est,sigma_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -59,7 +59,7 @@ estimate_gamma = function(evidence_type,sample_values){
     sigma_est = sample_values[2]
     shape_est = (mean_est/sigma_est)^2
     scale_est = (sigma_est^2)/mean_est 
-    }
+  }
   if(evidence_type=='perc'){
     cilow_est = sample_values[1]
     cihigh_est = sample_values[2]
@@ -76,22 +76,22 @@ estimate_gamma = function(evidence_type,sample_values){
   return(c(shape_est,scale_est))
 }
 
-summary_stats_gamma = function(dist_label,evidence_type,param_est){
+summary_stats_gamma = function(dist_label,evidence_type,param_est,dps){
   shape_est=param_est[1];scale_est=param_est[2]
   mu_est = shape_est*scale_est
   sigma_est = sqrt(shape_est)*scale_est
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("gamma",param_est), #input[['dist_family']];parameter_es
-                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
-                                                              round(qgamma(0.025,shape=shape_est,scale=scale_est),2),' to ',
-                                                              round(qgamma(0.975,shape=shape_est,scale=scale_est),2),')'), 
+                    "Distribution" = nice_names("gamma",param_est,dps), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(mu_est,dps),' (',
+                                                   roundz(qgamma(0.025,shape=shape_est,scale=scale_est),dps),' to ',
+                                                   roundz(qgamma(0.975,shape=shape_est,scale=scale_est),dps),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qgamma(0.5,shape=shape_est,scale=scale_est),2),' (',
-                                                 round(qgamma(0.25,shape=shape_est,scale=scale_est),2),' to ',
-                                                 round(qgamma(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(roundz(qgamma(0.5,shape=shape_est,scale=scale_est),dps),' (',
+                                                 roundz(qgamma(0.25,shape=shape_est,scale=scale_est),dps),' to ',
+                                                 roundz(qgamma(0.75,shape=shape_est,scale=scale_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -123,14 +123,14 @@ estimate_weibull = function(evidence_type,sample_values){
     p1 = (1-cilevel_est)/2
     p2 = 1-p1
     shape_est = (log(-log(1-p2))-log(-log(1-p1)))/(log(cihigh_est)-log(cilow_est))
-    #take average value for scale_est to account for rounding errors in inputs
+    #take average value for scale_est to account for roundzing errors in inputs
     scale_est = 0.5*(cilow_est/((-log(1-p1))^(1/shape_est)) + cihigh_est/((-log(1-p2))^(1/shape_est)))
   }
   return(c(shape_est,scale_est))
-    
+  
 }
 
-summary_stats_weibull = function(dist_label,evidence_type,param_est){
+summary_stats_weibull = function(dist_label,evidence_type,param_est,dps){
   shape_est = param_est[1];scale_est = param_est[2]
   mu_est = scale_est*gamma(1+1/shape_est)
   
@@ -138,15 +138,15 @@ summary_stats_weibull = function(dist_label,evidence_type,param_est){
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("weib",param_est), #input[['dist_family']];parameter_es
-                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
-                                                              round(qweibull(0.025,shape=shape_est,scale=scale_est),2),' to ',
-                                                              round(qweibull(0.975,shape=shape_est,scale=scale_est),2),')'), 
+                    "Distribution" = nice_names("weib",param_est,dps), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(mu_est,dps),' (',
+                                                   roundz(qweibull(0.025,shape=shape_est,scale=scale_est),dps),' to ',
+                                                   roundz(qweibull(0.975,shape=shape_est,scale=scale_est),dps),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qweibull(0.5,shape=shape_est,scale=scale_est),2),' (',
-                                                 round(qweibull(0.25,shape=shape_est,scale=scale_est),2),' to ',
-                                                 round(qweibull(0.75,shape=shape_est,scale=scale_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(roundz(qweibull(0.5,shape=shape_est,scale=scale_est),dps),' (',
+                                                 roundz(qweibull(0.25,shape=shape_est,scale=scale_est),dps),' to ',
+                                                 roundz(qweibull(0.75,shape=shape_est,scale=scale_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -188,29 +188,29 @@ estimate_beta = function(evidence_type,sample_values){
     a_est = exp(out$par)[1]
     b_est = exp(out$par)[2]
   }
-
+  
   
   return(c(a_est,b_est))
-
+  
 }  
 
 
-summary_stats_beta = function(dist_label,evidence_type,param_est){
+summary_stats_beta = function(dist_label,evidence_type,param_est,dps){
   a_est = param_est[1];b_est = param_est[2]
   mu_est = a_est/(a_est+b_est)
   sigma_est = sqrt((a_est*b_est)/((a_est+b_est+1)*(a_est+b_est)^2))
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("beta",param_est), #input[['dist_family']];parameter_es
-                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
-                                                              round(qbeta(0.025,shape1=a_est,shape2=b_est),2),' to ',
-                                                              round(qbeta(0.975,shape1=a_est,shape2=b_est),2),')'), 
+                    "Distribution" = nice_names("beta",param_est,dps), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(mu_est,dps),' (',
+                                                   roundz(qbeta(0.025,shape1=a_est,shape2=b_est),dps),' to ',
+                                                   roundz(qbeta(0.975,shape1=a_est,shape2=b_est),dps),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qbeta(0.5,shape1=a_est,shape2=b_est),2),' (',
-                                                 round(qbeta(0.25,shape1=a_est,shape2=b_est),2),' to ',
-                                                 round(qbeta(0.75,shape1=a_est,shape2=b_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(roundz(qbeta(0.5,shape1=a_est,shape2=b_est),dps),' (',
+                                                 roundz(qbeta(0.25,shape1=a_est,shape2=b_est),dps),' to ',
+                                                 roundz(qbeta(0.75,shape1=a_est,shape2=b_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -234,23 +234,23 @@ estimate_uniform = function(sample_values){
 }
 
 
-summary_stats_uniform = function(dist_label,evidence_type,param_est){
+summary_stats_uniform = function(dist_label,evidence_type,param_est,dps){
   a_est = param_est[1];b_est = param_est[2]
   mu_est = 0.5*(a_est+b_est)
   sigma_est = sqrt((1/12)*(b_est-a_est)^2)
-
+  
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("unif",param_est), #input[['dist_family']];parameter_es
-                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
-                                                              round(qunif(0.025,min=a_est,max=b_est),2),' to ',
-                                                              round(qunif(0.975,min=a_est,max=b_est),2),')'), 
+                    "Distribution" = nice_names("unif",param_est,dps), #input[['dist_family']];parameter_es
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(mu_est,dps),' (',
+                                                   roundz(qunif(0.025,min=a_est,max=b_est),dps),' to ',
+                                                   roundz(qunif(0.975,min=a_est,max=b_est),dps),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qunif(0.5,min=a_est,max=b_est),2),' (',
-                                                 round(qunif(0.25,min=a_est,max=b_est),2),' to ',
-                                                 round(qunif(0.75,min=a_est,max=b_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(roundz(qunif(0.5,min=a_est,max=b_est),dps),' (',
+                                                 roundz(qunif(0.25,min=a_est,max=b_est),dps),' to ',
+                                                 roundz(qunif(0.75,min=a_est,max=b_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -277,11 +277,11 @@ estimate_lognormal = function(evidence_type,sample_values){
     sigma_est = (cihigh_est-cilow_est)/(qnorm(1-p1)-qnorm(p1))
   }
   return(c(mu_est,sigma_est))
-
+  
 }
 
 
-summary_stats_lognormal = function(dist_label,evidence_type,param_est){
+summary_stats_lognormal = function(dist_label,evidence_type,param_est,dps){
   log_mu_est = param_est[1];log_sigma_est = param_est[2]
   
   mu_est = exp(param_est[1]+0.5*param_est[2]^2)
@@ -290,15 +290,15 @@ summary_stats_lognormal = function(dist_label,evidence_type,param_est){
   
   out <- data.frame("Description"=dist_label, #input[['dist_label']]
                     "Form of evidence"= nice_names_evidence(evidence_type), #input[['parms_in]]
-                    "Distribution" = nice_names("lnorm",param_est),
-                    "Mean (SD)" = paste0(round(mu_est,2),' (',round(sigma_est,2),')'), 
-                    "Mean (95% Interval)" = paste0(round(mu_est,2),' (',
-                                                              round(qlnorm(0.025,log_mu_est,log_sigma_est),2),' to ',
-                                                              round(qlnorm(0.975,log_mu_est,log_sigma_est),2),')'), 
+                    "Distribution" = nice_names("lnorm",param_est,dps),
+                    "Mean (SD)" = paste0(roundz(mu_est,dps),' (',roundz(sigma_est,dps),')'), 
+                    "Mean (95% Interval)" = paste0(roundz(mu_est,dps),' (',
+                                                   roundz(qlnorm(0.025,log_mu_est,log_sigma_est),dps),' to ',
+                                                   roundz(qlnorm(0.975,log_mu_est,log_sigma_est),dps),')'), 
                     
-                    "Median (Q1 to Q3)" = paste0(round(qlnorm(0.5,log_mu_est,log_sigma_est),2),' (',
-                                                 round(qlnorm(0.25,log_mu_est,log_sigma_est),2),' to ',
-                                                 round(qlnorm(0.75,log_mu_est,log_sigma_est),2),')'),check.names=F)
+                    "Median (Q1 to Q3)" = paste0(roundz(qlnorm(0.5,log_mu_est,log_sigma_est),dps),' (',
+                                                 roundz(qlnorm(0.25,log_mu_est,log_sigma_est),dps),' to ',
+                                                 roundz(qlnorm(0.75,log_mu_est,log_sigma_est),dps),')'),check.names=F)
   return(out)
 }
 
@@ -343,8 +343,8 @@ check_all_inputs <- function(dist_obj,evidence_type,sample_vals){
            'unif'=check_uniform_params(sample_vals),
            'lnorm' = check_lognormal_params(evidence_type,sample_vals),
            'weib' = check_weibull_params(evidence_type,sample_vals))}
-
-
+  
+  
 }
 
 
@@ -403,7 +403,7 @@ renderDistIn <- function(dist_obj){
          "norm" = selectInput(inputId = 'parms_in',label='Form of evidence',
                               choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                               selected='mean_se'),
-                              
+         
          "gamma" = selectInput(inputId = 'parms_in',label='Form of evidence',
                                choices = c('Mean with uncertainty'='mean_se','Percentiles'='perc'),
                                selected='mean_se'),
@@ -456,14 +456,14 @@ define_evidence_options <- function(input_obj){
   return(state)
 }
 
-nice_names <- function(dist_obj_name,param_est){
+nice_names <- function(dist_obj_name,param_est,dps){
   switch(dist_obj_name,
-         'norm' = paste0('Normal(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'gamma' = paste0('Gamma(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'beta' = paste0('Beta(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'unif' = paste0('Uniform(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'lnorm' = paste0('Log-normal(',round(param_est[1],2),',',round(param_est[2],2),')'),
-         'weib' = paste0('Weibull(',round(param_est[1],2),',',round(param_est[2],2),')')
+         'norm' = paste0('Normal(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')'),
+         'gamma' = paste0('Gamma(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')'),
+         'beta' = paste0('Beta(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')'),
+         'unif' = paste0('Uniform(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')'),
+         'lnorm' = paste0('Log-normal(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')'),
+         'weib' = paste0('Weibull(',roundz(param_est[1],dps),',',roundz(param_est[2],dps),')')
   )
 }
 
@@ -492,7 +492,7 @@ colourschemes <- list('Greyscale' = c("#000000","#737373","#BDBDBD","#D9D9D9","#
                       "Set3"=brewer.pal(n=8,name="Set3"),
                       'Colourblind-1'=  c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
                       'Colourblind-2'=  c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-                      )
+)
 
 
 themes <- list("Minimal" = theme_minimal(),
@@ -525,7 +525,11 @@ calc_xlim <- function(dist_family,parm_est){
          'weib' = qweibull(p=c(0.0001,0.9999),shape=parm_est[1],scale=parm_est[2]))
 }
 
-
+roundz<-function(x, digits){
+  dformat = paste('%.', digits, 'f', sep='')
+  x = sprintf(dformat, round(x, digits))
+  return(x)
+}
 
 
 sect_properties <- prop_section(
